@@ -81,7 +81,6 @@ public class GameController
 		adapter.clearMouse();
 		loadMouse();
 		
-		randomizeCheese();
 		Grid origin = maze.getGrid(0, 0);
 		for (MouseController mouse : mouseList)
 		{	
@@ -120,50 +119,8 @@ public class GameController
 			
 			if ((xOnField >= targetXOnGrid - leeway && xOnField <= targetXOnGrid + leeway) &&
 				(yOnField >= targetYOnGrid - leeway && yOnField <= targetYOnGrid + leeway))
-			{
-				Bomb detonatedBomb = null;
-				for (Bomb bomb : bombList)
-				{
-					if (bomb.getX() == targetGrid.getX() && bomb.getY() == targetGrid.getY() && !bomb.hasDetonated())
-					{
-						if (bomb.getMouse() != mouse.getMouse())
-						{
-							detonatedBomb = bomb;
-							bomb.detonate();
-							break;
-						}
-					}
-				}
-				
-				if (detonatedBomb != null)
-				{
-					this.adapter.detonateBomb(detonatedBomb);
-					Grid newGrid = getRandomGrid();
-					mouse.setTargetGrid(newGrid);
-					
-					this.adapter.repositionMouse(mouse, newGrid);
-					mouse.getMouse().respawned();
-					return null;
-				}
-				
-				if (this.cheese.getX() == targetGrid.getX() && this.cheese.getY() == targetGrid.getY())
-				{
-					represent.displayCheeseNumber();
-					mouse.increaseNumberOfCheese();
-					this.numberOfCheeseTaken++;
-					
-					if (this.numberOfCheeseTaken == this.numberOfCheese)
-					{
-						this.adapter.stop();
-					}
-					else
-					{
-						randomizeCheese();
-					}
-				}
-				
+			{			
 				return targetGrid;
-				
 			}
 		
 		}
@@ -295,18 +252,6 @@ public class GameController
 	}
 	
 	
-	// Change the location of the cheese randomly. Calls the adapter of the
-	// new location of the cheese.
-	private void randomizeCheese()
-	{
-		Random random = new Random();
-		this.cheese = new Cheese(random.nextInt(maze.getWidth()), random.nextInt(maze.getHeight()));
-		for (MouseController controller : mouseList)
-		{
-			controller.getMouse().newCheese();
-		}
-		adapter.newCheese(this.cheese);
-	}
 	
 	
 	/**

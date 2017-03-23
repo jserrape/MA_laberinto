@@ -41,7 +41,6 @@ public class GameUI extends JFrame implements GameControllerAdapter {
     private JLabel countDownLabel;
     private SequencingThread sequencer;
     private CountDownThread countDownThread;
-    private ArrayList<BombRepresent> bombs;
     private int duration;
 
     /**
@@ -61,7 +60,6 @@ public class GameUI extends JFrame implements GameControllerAdapter {
         this.controller = new GameController(this, width, height, GRID_LENGTH, numberOfCheese);
         this.mazePanels = new ImagedPanel[width][height];
         this.maze = this.controller.getMaze();
-        this.bombs = new ArrayList<BombRepresent>();
         this.sequencer = new SequencingThread();
 
         initialiseUI();
@@ -111,21 +109,9 @@ public class GameUI extends JFrame implements GameControllerAdapter {
             }
         }
 
-        createCheese();
     }
 
-    // Creates a panel on the user interface representing a cheese.
-    // @throws IOException An IOException can occur if the required game assets are missing.
-    private void createCheese()
-            throws IOException {
-        String assetAddress = GameConfig.ASSETS_CHEESE;
-        cheesePanel = new ImagedPanel(assetAddress, GRID_LENGTH, GRID_LENGTH);
-        cheesePanel.setOpaque(false);
 
-        cheesePanel.setBounds(getGridLeft(5), getGridTop(5), GRID_LENGTH, GRID_LENGTH);
-        container.add(cheesePanel);
-        container.moveToFront(cheesePanel);
-    }
 
     /*
 	 * (non-Javadoc)
@@ -161,75 +147,7 @@ public class GameUI extends JFrame implements GameControllerAdapter {
         sequencer.addInstance(mouseInstance);
     }
 
-    /*
-	 * (non-Javadoc)
-	 * @see mouserun.game.GameControllerAdapter#newCheese(mouserun.game.Cheese)
-     */
-    public void newCheese(Cheese newCheese) {
-        cheesePanel.setLocation(getGridLeft(newCheese.getX()), getGridTop(newCheese.getY()));
-        container.moveToFront(cheesePanel);
-    }
 
-    /*
-	 * (non-Javadoc)
-	 * @see mouserun.game.GameControllerAdapter#newBomb(mouserun.game.Bomb)
-     */
-    public void newBomb(Bomb bomb)
-            throws IOException {
-        try {
-            String assetAddress = GameConfig.ASSETS_BOMB;
-            ImagedPanel bombPanel = new ImagedPanel(assetAddress, GRID_LENGTH, GRID_LENGTH);
-            bombPanel.setOpaque(false);
-
-            bombPanel.setBounds(getGridLeft(bomb.getX()), getGridTop(bomb.getY()), GRID_LENGTH, GRID_LENGTH);
-            container.add(bombPanel);
-            container.moveToFront(bombPanel);
-
-            JLabel label = new JLabel(bomb.getMouse().getName());
-            label.setBounds(getGridLeft(bomb.getX()), getGridTop(bomb.getY()) + GRID_LENGTH, GRID_LENGTH * 2, 20);
-            label.setForeground(Color.LIGHT_GRAY);
-            label.setOpaque(false);
-            container.add(label);
-            container.moveToFront(label);
-
-            BombRepresent bombRepresent = new BombRepresent(bomb, bombPanel, label);
-            bombs.add(bombRepresent);
-        } catch (Exception ex) {
-            Debug.out().println("X=" + getGridLeft(bomb.getX()) + ",Y=" + getGridTop(bomb.getY()));
-        }
-    }
-
-    /*
-	 * (non-Javadoc)
-	 * @see mouserun.game.GameControllerAdapter#detonateBomb(mouserun.game.Bomb)
-     */
-    public void detonateBomb(Bomb bomb)
-            throws IOException {
-        String assetAddress = GameConfig.ASSETS_EXPLODED;
-        BombRepresent represent = getBombRepresent(bomb);
-        if (represent != null) {
-            represent.getRepresent().setImage(assetAddress);
-            BombThread thread = new BombThread(this, bomb);
-            thread.start();
-        }
-    }
-
-    /*
-	 * (non-Javadoc)
-	 * @see mouserun.game.GameControllerAdapter#removeBomb(mouserun.game.Bomb)
-     */
-    public void removeBomb(Bomb bomb) {
-        BombRepresent represent = getBombRepresent(bomb);
-        if (represent != null) {
-            container.remove(represent.getRepresent());
-            container.remove(represent.getLabel());
-        }
-
-        ImagedPanel panel = mazePanels[bomb.getX()][bomb.getY()];
-        container.moveToFront(panel);
-        container.moveToBack(panel);
-
-    }
 
     /*
 	 * (non-Javadoc)
@@ -340,17 +258,6 @@ public class GameUI extends JFrame implements GameControllerAdapter {
         return null;
     }
 
-    // Gets the BombRepresent that represents the bomb in the game interface.
-    private BombRepresent getBombRepresent(Bomb bomb) {
-        for (BombRepresent represent : bombs) {
-            if (represent.getBomb() == bomb) {
-                return represent;
-            }
-        }
-
-        return null;
-    }
-
     /*
 	 * (non-Javadoc)
 	 * @see mouserun.game.GameControllerAdapter#displayCountDown(int seconds)()
@@ -364,6 +271,26 @@ public class GameUI extends JFrame implements GameControllerAdapter {
 
         countDownLabel.setBounds(x, y, (int) preferred.getWidth(), (int) preferred.getHeight());
         container.moveToFront(countDownLabel);
+    }
+
+    @Override
+    public void newBomb(Bomb bomb) throws IOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void detonateBomb(Bomb bomb) throws IOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void removeBomb(Bomb bomb) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void newCheese(Cheese newCheese) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }
