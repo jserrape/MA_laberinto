@@ -19,7 +19,6 @@
  **/
 package mouserun.game;
 
-import mouserun.mouse.*;
 import java.util.*;
 import java.lang.reflect.*;
 
@@ -79,7 +78,6 @@ public class GameController
 	public void start()
 	{
 		adapter.clearMouse();
-		loadMouse();
 		
 		Grid origin = maze.getGrid(0, 0);
 		for (MouseController mouse : mouseList)
@@ -225,35 +223,7 @@ public class GameController
 		return grid;
 	}
 	
-	// Calls the MouseLoader class to discover all Mouse implementations that are
-	// playing on the field. These Mouse implementations are then loaded and wrapped
-	// around by the MouseController class. 
-	private void loadMouse()
-	{
-		mouseList.clear();
-		for (Class<?> clz : MouseLoader.load())
-		{
-			try
-			{
-				Constructor<?> struc = clz.getConstructor((Class<?>[])null);
-				Mouse mouse = (Mouse)struc.newInstance();
-				
-				MouseController controller = new MouseController(mouse);
-				controller.setNumberOfBombs((int)(this.numberOfCheese * GameConfig.RATIO_BOMBS_TO_CHEESE));
-				
-				mouseList.add(controller);
-			}
-			catch (Exception ex)
-			{
-				Debug.out().println(clz.getName() + " failed to load.");
-				ex.printStackTrace();
-			}
-		}
-	}
-	
-	
-	
-	
+
 	/**
 	 * Gets the actual X-axis on the game interface given the maze X-axis value.
 	 * @param x The X-axis value on the maze.
