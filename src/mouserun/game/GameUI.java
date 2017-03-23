@@ -9,7 +9,7 @@ import java.awt.*;
  * Class GameUI is the Game Interface of the game. It uses standard JFrame etc
  * components in this implementation.
  */
-public class GameUI extends JFrame implements GameControllerAdapter {
+public class GameUI extends JFrame {
 
     private Maze maze;
     private GameController controller;
@@ -32,7 +32,7 @@ public class GameUI extends JFrame implements GameControllerAdapter {
         super(GameConfig.GAME_TITLE);
         GRID_LENGTH = GameConfig.GRID_LENGTH;
 
-        this.controller = new GameController(this, width, height, GRID_LENGTH);
+        this.controller = new GameController(width, height, GRID_LENGTH);
         this.mazePanels = new ImagedPanel[width][height];
         this.maze = this.controller.getMaze();
         this.sequencer = new SequencingThread();

@@ -5,7 +5,7 @@ public class GameController {
 
     private Maze maze;
     private int gridSize;
-    private GameControllerAdapter adapter;
+   
 
     /**
      * Creates an instance of the controller.
@@ -16,8 +16,8 @@ public class GameController {
      * @param height The number of vertical grids.
      * @param gridSize The width and height of each cell.
      */
-    public GameController(GameControllerAdapter adapter, int width, int height, int gridSize) {
-        this.adapter = adapter;
+    public GameController(int width, int height, int gridSize) {
+
         this.maze = new Maze(width, height);
         this.gridSize = gridSize;
 
@@ -38,7 +38,7 @@ public class GameController {
      * to begin.
      */
     public void start() {
-        adapter.start();
+        
     }
 
     /**
