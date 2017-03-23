@@ -18,7 +18,6 @@
  * along with MouseRun.  If not, see <http://www.gnu.org/licenses/>.
  **/
 package mouserun.game;
-import java.io.*;
 
 /**
  * Interface GameControllerAdapter provides the interface for the GameController to 

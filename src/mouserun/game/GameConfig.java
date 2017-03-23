@@ -26,7 +26,7 @@ public class GameConfig
 {
 
 	/** UI **/
-	public static final String GAME_TITLE				= "Mouse Run";
+	public static final String GAME_TITLE				= "Agente raton de UJAtaco";
 	public static final int GRID_LENGTH					= 30;
 	public static final int MOUSE_CHEESE_DISPLAY_LENGTH	= 40;
 	public static final int COUNT_DOWN_FONT_SIZE			= 200;
@@ -50,7 +50,4 @@ public class GameConfig
 	public static final int MOUSE_RESPONSE_TIMEOUT		= 50;
 	public static final int ROUND_SLEEP_TIME				= 80;
 
-	/** Security **/
-	public static final boolean INSTALL_SECURITY_MANAGER	= true;
-	public static final boolean PREVENT_MOUSE_IO			= true;
 }

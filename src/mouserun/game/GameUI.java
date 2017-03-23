@@ -37,11 +37,8 @@ public class GameUI extends JFrame implements GameControllerAdapter {
     private int GRID_LENGTH = 30;
     private ImagedPanel[][] mazePanels;
     private JLayeredPane container;
-    private JPanel cheesePanel;
     private JLabel countDownLabel;
     private SequencingThread sequencer;
-    private CountDownThread countDownThread;
-    private int duration;
 
     /**
      * Creates an instance of the GameUI.
@@ -52,7 +49,7 @@ public class GameUI extends JFrame implements GameControllerAdapter {
      * @throws IOException An IOException can occur when the required game
      * assets are missing.
      */
-    public GameUI(int width, int height, int numberOfCheese, int duration)
+    public GameUI(int width, int height, int numberOfCheese)
             throws IOException {
         super(GameConfig.GAME_TITLE);
         GRID_LENGTH = GameConfig.GRID_LENGTH;
@@ -65,10 +62,6 @@ public class GameUI extends JFrame implements GameControllerAdapter {
         initialiseUI();
         controller.start();
 
-        if (duration > 0) {
-            countDownThread = new CountDownThread(this, duration);
-            countDownThread.start();
-        }
     }
 
     // Loads and defines the frame of the user interface, the maze, the mouse
@@ -119,21 +112,6 @@ public class GameUI extends JFrame implements GameControllerAdapter {
         sequencer.start();
     }
 
-    /*
-	 * (non-Javadoc)
-	 * @see mouserun.game.GameControllerAdapter#stop()
-         * Modified on 01-21-2016: New mouse variables shown in the end
-     */
-    public void stop() {
-        sequencer.kill();
-        countDownThread.kill();
-
-        int highestNumberOfCheese = -1;
-
-        String newline = System.getProperty("line.separator");
-
-        System.exit(0);
-    }
 
     // Converts the Maze X value to the Left value of the Game Interface
     private int getGridLeft(int x) {
@@ -145,19 +123,15 @@ public class GameUI extends JFrame implements GameControllerAdapter {
         return (maze.getHeight() - y - 1) * GRID_LENGTH;
     }
 
-    /*
-	 * (non-Javadoc)
-	 * @see mouserun.game.GameControllerAdapter#displayCountDown(int seconds)()
-     */
+
+    @Override
+    public void stop() {
+       
+    }
+
+    @Override
     public void displayCountDown(int seconds) {
-        countDownLabel.setText(/*seconds + */"PENE");
-        Dimension preferred = countDownLabel.getPreferredSize();
-
-        int y = (int) ((container.getHeight() - preferred.getHeight()) / 2);
-        int x = (int) ((container.getWidth() - preferred.getWidth()) / 2);
-
-        countDownLabel.setBounds(x, y, (int) preferred.getWidth(), (int) preferred.getHeight());
-        container.moveToFront(countDownLabel);
+       
     }
 
 }
