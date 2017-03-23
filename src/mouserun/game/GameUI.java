@@ -111,67 +111,6 @@ public class GameUI extends JFrame implements GameControllerAdapter {
 
     }
 
-
-
-    /*
-	 * (non-Javadoc)
-	 * @see mouserun.game.GameControllerAdapter#newMouse(mouserun.game.MouseController)
-     */
-    public void newMouse(MouseController mouse)
-            throws IOException {
-        String assetAddress = GameConfig.ASSETS_MOUSEUP;
-        ImagedPanel mousePanel = new ImagedPanel(assetAddress, GRID_LENGTH, GRID_LENGTH);
-        mousePanel.setOpaque(false);
-
-        JLabel label = new JLabel("009");
-        label.setForeground(Color.RED);
-        label.setBounds(getGridLeft(0), getGridTop(0), GRID_LENGTH * 2, 20);
-        label.setOpaque(false);
-
-        JLabel cheeselabel = new JLabel("009");
-        cheeselabel.setForeground(Color.ORANGE);
-        cheeselabel.setBackground(Color.ORANGE);
-        cheeselabel.setBounds(getGridLeft(0), getGridTop(0) - 20, GRID_LENGTH, 20);
-        cheeselabel.setOpaque(false);
-
-        mousePanel.setBounds(getGridLeft(0), getGridTop(0), GRID_LENGTH, GRID_LENGTH);
-        container.add(mousePanel);
-        container.add(label);
-        container.add(cheeselabel);
-        container.moveToFront(mousePanel);
-        container.moveToFront(label);
-        container.moveToFront(cheeselabel);
-
-        MouseRepresent mouseInstance = new MouseRepresent(controller, mouse, mousePanel, label, cheeselabel, GameConfig.ASSETS_MOUSEUP, GameConfig.ASSETS_MOUSEDOWN,
-                GameConfig.ASSETS_MOUSELEFT, GameConfig.ASSETS_MOUSERIGHT);
-        sequencer.addInstance(mouseInstance);
-    }
-
-
-
-    /*
-	 * (non-Javadoc)
-	 * @see mouserun.game.GameControllerAdapter#repositionMouse(mouserun.game.MouseController, mouserun.game.Grid)
-     */
-    public void repositionMouse(MouseController mouse, Grid grid) {
-        MouseRepresent thread = getMouseInstance(mouse);
-        if (thread != null) {
-            ImagedPanel mousePanel = (ImagedPanel) thread.getRepresent();
-            mousePanel.setBounds(getGridLeft(grid.getX()), getGridTop(grid.getY()), GRID_LENGTH, GRID_LENGTH);
-        }
-    }
-
-    /*
-	 * (non-Javadoc)
-	 * @see mouserun.game.GameControllerAdapter#clearMouse()
-     */
-    public void clearMouse() {
-        for (MouseRepresent mouseThread : sequencer.getInstances()) {
-            JPanel represent = mouseThread.getRepresent();
-            container.remove(represent);
-        }
-    }
-
     /*
 	 * (non-Javadoc)
 	 * @see mouserun.game.GameControllerAdapter#start()
@@ -190,49 +129,9 @@ public class GameUI extends JFrame implements GameControllerAdapter {
         countDownThread.kill();
 
         int highestNumberOfCheese = -1;
-        for (MouseRepresent mouseThread : sequencer.getInstances()) {
-            if (highestNumberOfCheese == -1) {
-                highestNumberOfCheese = mouseThread.getMouseController().getNumberOfCheese();
-            } else {
-                MouseController controller = mouseThread.getMouseController();
-                if (highestNumberOfCheese < controller.getNumberOfCheese()) {
-                    highestNumberOfCheese = controller.getNumberOfCheese();
-                }
-            }
-        }
-
-        ArrayList<MouseController> winners = new ArrayList<MouseController>();
-        for (MouseRepresent mouseThread : sequencer.getInstances()) {
-            MouseController controller = mouseThread.getMouseController();
-            if (controller.getNumberOfCheese() == highestNumberOfCheese) {
-                winners.add(controller);
-            }
-        }
 
         String newline = System.getProperty("line.separator");
-        String message = (winners.size() == 1 ? "Winner" : "Tie!") + newline;
 
-        int index = 1;
-        for (MouseController controller : winners) {
-            message += "(" + index + ") " + controller.getMouse().getName() + newline;
-            index++;
-        }
-
-        message += newline + newline + "Results" + newline;
-        index = 1;
-        for (MouseRepresent mouseThread : sequencer.getInstances()) {
-            MouseController controller = mouseThread.getMouseController();
-            // Modified: 01-21-2016
-            message += "(" + index + ") " + controller.getMouse().getName() + " -- " + controller.getNumberOfCheese() + " cheese(s)"
-                    + ", " + controller.getMouse().getSteps() + " step(s)"
-                    + ", " + controller.getMouse().getExploredGrids() + " visited grid(s)" + newline;
-            index++;
-        }
-
-        JOptionPane.showMessageDialog(null, message, "Results", JOptionPane.INFORMATION_MESSAGE);
-        Debug.out().println();
-        Debug.out().println();
-        Debug.out().println(message);
         System.exit(0);
     }
 
@@ -244,18 +143,6 @@ public class GameUI extends JFrame implements GameControllerAdapter {
     // Converts the Maze Y value to the Top value of the Game Interface
     private int getGridTop(int y) {
         return (maze.getHeight() - y - 1) * GRID_LENGTH;
-    }
-
-    // Get the MouseInstance that represents the Mouse and the MouseController in the
-    // game interface
-    private MouseRepresent getMouseInstance(MouseController mouse) {
-        for (MouseRepresent mouseThread : sequencer.getInstances()) {
-            if (mouseThread.getMouseController() == mouse) {
-                return mouseThread;
-            }
-        }
-
-        return null;
     }
 
     /*
@@ -271,26 +158,6 @@ public class GameUI extends JFrame implements GameControllerAdapter {
 
         countDownLabel.setBounds(x, y, (int) preferred.getWidth(), (int) preferred.getHeight());
         container.moveToFront(countDownLabel);
-    }
-
-    @Override
-    public void newBomb(Bomb bomb) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void detonateBomb(Bomb bomb) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void removeBomb(Bomb bomb) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void newCheese(Cheese newCheese) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

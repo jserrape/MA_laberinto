@@ -33,10 +33,7 @@ public class GameController
 
 	private Maze maze;
 	private int gridSize;
-	private Cheese cheese;
 	private GameControllerAdapter adapter;
-	private ArrayList<MouseController> mouseList;
-	private ArrayList<Bomb> bombList;
 	private int numberOfCheese;
 	private int numberOfCheeseTaken;
 	
@@ -51,8 +48,6 @@ public class GameController
 	public GameController(GameControllerAdapter adapter, int width, int height, int gridSize, int numberOfCheese)
 	{
 		this.adapter = adapter;
-		this.mouseList = new ArrayList<MouseController>();
-		this.bombList = new ArrayList<Bomb>();
 		this.maze = new Maze(width, height);
 		this.gridSize = gridSize;
 		
@@ -77,141 +72,11 @@ public class GameController
 	 */
 	public void start()
 	{
-		adapter.clearMouse();
 		
 		Grid origin = maze.getGrid(0, 0);
-		for (MouseController mouse : mouseList)
-		{	
-			try
-			{
-				adapter.newMouse(mouse);
-				mouse.setTargetGrid(origin);
-			}
-			catch (Exception ex)
-			{
-				Debug.out().println("Failed to create mouse represent");
-				ex.printStackTrace();
-			}
-		}
+
 		
 		adapter.start();
-	}
-	
-	/**
-	 * All instances of Mouse will report its location on the maze. 
-	 * @param represent The MouseRepresent that is representing an instance of the Mouse on the game interface.
-	 * @param xOnField The actual X location of the mouse on the actual Maze (UI).
-	 * @param yOnField The actual Y location of the mouse on the actual Maze (UI).
-	 * @return The target grid if the mouse reaches it. Null if otherwise.
-	 */
-	public Grid report(MouseRepresent represent, int xOnField, int yOnField)
-	{
-		try
-		{
-			MouseController mouse = represent.getMouseController();
-			Grid targetGrid = mouse.getTargetGrid();
-			int targetXOnGrid = getGridLeft(targetGrid.getX());
-			int targetYOnGrid = getGridTop(targetGrid.getY()); 
-			
-			int leeway = GameConfig.PIXELS_ON_TARGET_LEEWAY;
-			
-			if ((xOnField >= targetXOnGrid - leeway && xOnField <= targetXOnGrid + leeway) &&
-				(yOnField >= targetYOnGrid - leeway && yOnField <= targetYOnGrid + leeway))
-			{			
-				return targetGrid;
-			}
-		
-		}
-		catch (Exception ex)
-		{
-		
-		}
-	
-		return null;
-	}
-	
-	/**
-	*	Get the next move made by the mouse implementation.
-	*	@param mouse The Mouse in question to get its next move.
-	*	@param targetGrid The grid the Mouse is currently at
-	*	@return The Mouse's next move.
-	*/
-	public int getMouseNextMove(MouseController mouse, Grid targetGrid)
-	{
-		return mouse.onGrid(targetGrid, cheese); 
-	}
-	
-	/**
-	*	Causes the Mouse to move based on its move decision
-	*	@param mouse The Mouse in question to move
-	*	@param move The move that Mouse is going to take
-	*/
-	public void causeMouseMove(MouseController mouse, int move)
-	{
-		try
-		{
-			Grid targetGrid = mouse.getTargetGrid();
-			Grid nextGrid = null;
-					
-			switch (move)
-			{
-				case Mouse.UP:
-					nextGrid = targetGrid.up();
-					break;
-					
-				case Mouse.DOWN:
-					nextGrid = targetGrid.down();
-					break;
-					
-				case Mouse.LEFT:
-					nextGrid = targetGrid.left();
-					break;
-				
-				case Mouse.RIGHT:
-					nextGrid = targetGrid.right();
-					break;
-					
-				case Mouse.BOMB:
-					nextGrid = null;
-					
-					boolean canPlant = true;
-					for (Bomb bomb : bombList)
-					{
-						if (!bomb.hasDetonated())
-						{
-							if (targetGrid.getX() == bomb.getX() && targetGrid.getY() == bomb.getY())
-							{
-								canPlant = false;
-							}
-						}
-					}
-					
-					if (canPlant)
-					{
-						Bomb bomb = mouse.makeBomb();
-						
-						if (bomb != null)
-						{
-							bombList.add(bomb);
-							this.adapter.newBomb(bomb);
-						}
-					}
-					
-					break;
-			}
-			
-			if (nextGrid != null)
-			{
-				mouse.setTargetGrid(nextGrid);
-			}
-			
-		}
-		catch (Exception ex)
-		{
-			Debug.out().println(mouse.getMouse().getName() + " encountered an exception.");
-			Debug.out().println(ex.getMessage());
-			ex.printStackTrace();
-		}
 	}
 
 	// Gets a random grid from the maze.
