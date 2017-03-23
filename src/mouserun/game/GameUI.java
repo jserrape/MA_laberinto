@@ -1,28 +1,7 @@
-/**
- * MouseRun. A programming game to practice building intelligent things.
- * Copyright (C) 2013  Muhammad Mustaqim
- *
- * This file is part of MouseRun.
- *
- * MouseRun is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * MouseRun is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with MouseRun.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
 package mouserun.game;
 
 import mouserun.game.common.*;
 import java.io.*;
-import java.util.*;
 import javax.swing.*;
 import java.awt.*;
 
@@ -45,16 +24,15 @@ public class GameUI extends JFrame implements GameControllerAdapter {
      *
      * @param width The width of the user interface.
      * @param height The height of the user interface.
-     * @param numberOfCheese The number of cheese this game is playing for.
      * @throws IOException An IOException can occur when the required game
      * assets are missing.
      */
-    public GameUI(int width, int height, int numberOfCheese)
+    public GameUI(int width, int height)
             throws IOException {
         super(GameConfig.GAME_TITLE);
         GRID_LENGTH = GameConfig.GRID_LENGTH;
 
-        this.controller = new GameController(this, width, height, GRID_LENGTH, numberOfCheese);
+        this.controller = new GameController(this, width, height, GRID_LENGTH);
         this.mazePanels = new ImagedPanel[width][height];
         this.maze = this.controller.getMaze();
         this.sequencer = new SequencingThread();
@@ -67,8 +45,7 @@ public class GameUI extends JFrame implements GameControllerAdapter {
     // Loads and defines the frame of the user interface, the maze, the mouse
     // and the objects.
     // @throws IOException An IOException can occur if the required game assets are missing.
-    private void initialiseUI()
-            throws IOException {
+    private void initialiseUI() throws IOException {
         JFrame frame = new JFrame();
         frame.setResizable(false);
         frame.pack();
@@ -112,7 +89,6 @@ public class GameUI extends JFrame implements GameControllerAdapter {
         sequencer.start();
     }
 
-
     // Converts the Maze X value to the Left value of the Game Interface
     private int getGridLeft(int x) {
         return x * GRID_LENGTH;
@@ -122,16 +98,4 @@ public class GameUI extends JFrame implements GameControllerAdapter {
     private int getGridTop(int y) {
         return (maze.getHeight() - y - 1) * GRID_LENGTH;
     }
-
-
-    @Override
-    public void stop() {
-       
-    }
-
-    @Override
-    public void displayCountDown(int seconds) {
-       
-    }
-
 }

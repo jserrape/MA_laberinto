@@ -1,35 +1,6 @@
-/**
- * MouseRun. A programming game to practice building intelligent things.
- * Copyright (C) 2013  Muhammad Mustaqim
- *
- * This file is part of MouseRun.
- *
- * MouseRun is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * MouseRun is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with MouseRun.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
 package mouserun.game;
 
-import java.util.*;
-import java.lang.reflect.*;
 
-/**
- * Class GameController is the brain of the game. It controls the events that
- * occurred in the game to signal the start and end of the game, the moment a
- * cheese has been taken and bombs detonated etc. The GameController will
- * communicate to the Game Interface through the GameControllerAdapter
- * interface.
- */
 public class GameController {
 
     private Maze maze;
@@ -44,9 +15,8 @@ public class GameController {
      * @param width The number of horizontal grids.
      * @param height The number of vertical grids.
      * @param gridSize The width and height of each cell.
-     * @param numberOfCheese The number of cheese to play for.
      */
-    public GameController(GameControllerAdapter adapter, int width, int height, int gridSize, int numberOfCheese) {
+    public GameController(GameControllerAdapter adapter, int width, int height, int gridSize) {
         this.adapter = adapter;
         this.maze = new Maze(width, height);
         this.gridSize = gridSize;

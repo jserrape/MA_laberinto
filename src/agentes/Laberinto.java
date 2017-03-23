@@ -27,8 +27,6 @@ public class Laberinto extends Agent {
     private GameUI ui;
     private int width = 10;
     private int height = 10;
-    private int numberOfCheese = 20;
-    private int duration = 0;
 
     @Override
     protected void setup() {
@@ -44,13 +42,10 @@ public class Laberinto extends Agent {
         if (arg.length >= 2) {
             height = Integer.parseInt(arg[1]);
         }
-        if (arg.length >= 3) {
-            numberOfCheese = Integer.parseInt(arg[2]);
-        }
         
         //Configuración del GUI
         try {
-            ui = new GameUI(width, height, numberOfCheese);
+            ui = new GameUI(width, height);
         } catch (IOException ex) {
             Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
         }
