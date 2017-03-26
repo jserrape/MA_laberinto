@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with MouseRun.  If not, see <http://www.gnu.org/licenses/>.
  **/
-package mouserun.game.common;
+package mouserun.game;
 
 import java.io.*;
 import java.util.*;

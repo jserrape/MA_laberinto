@@ -1,6 +1,5 @@
 package mouserun.game;
 
-import mouserun.game.common.*;
 import java.io.*;
 import javax.swing.*;
 import java.awt.*;
@@ -16,8 +15,7 @@ public class GameUI extends JFrame {
     private int GRID_LENGTH = 30;
     private ImagedPanel[][] mazePanels;
     private JLayeredPane container;
-    private JLabel countDownLabel;
-    private SequencingThread sequencer;
+
 
     /**
      * Creates an instance of the GameUI.
@@ -35,7 +33,6 @@ public class GameUI extends JFrame {
         this.controller = new GameController(width, height, GRID_LENGTH);
         this.mazePanels = new ImagedPanel[width][height];
         this.maze = this.controller.getMaze();
-        this.sequencer = new SequencingThread();
 
         initialiseUI();
         controller.start();
@@ -61,11 +58,6 @@ public class GameUI extends JFrame {
         this.add(container);
         this.setResizable(false);
 
-        countDownLabel = new JLabel("");
-        countDownLabel.setForeground(Color.WHITE);
-        countDownLabel.setFont(new Font("San Serif", Font.PLAIN, GameConfig.COUNT_DOWN_FONT_SIZE));
-        container.add(countDownLabel);
-
         for (int x = 0; x < maze.getWidth(); x++) {
             for (int y = 0; y < maze.getHeight(); y++) {
                 Grid grid = maze.getGrid(x, y);
@@ -86,7 +78,7 @@ public class GameUI extends JFrame {
 	 * @see mouserun.game.GameControllerAdapter#start()
      */
     public void start() {
-        sequencer.start();
+       // sequencer.start();
     }
 
     // Converts the Maze X value to the Left value of the Game Interface
