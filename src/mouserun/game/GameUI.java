@@ -72,11 +72,10 @@ public class GameUI extends JFrame {
         }
         
         //AQUI PINTO UNA RATA
-        ImagedPanel rata = new ImagedPanel("assets/mouseright.png", GRID_LENGTH, GRID_LENGTH);
-        rata.setBounds(getGridLeft(1), getGridTop(0), GRID_LENGTH * 2, 20);
-        rata.setOpaque(false);
-        container.add(rata);
-        container.moveToFront(rata);
+        Rata rata=new Rata("Nombre",1,0);
+        container.add(rata.getPanel());
+        container.moveToFront(rata.getPanel());
+        rata.setPosicion(8, 5);
     }
 
     public void newMouse()

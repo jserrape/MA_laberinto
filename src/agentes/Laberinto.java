@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 public class Laberinto extends Agent {
 
     //Variables del agente
-    private GameUI ui;
+    private GameUI laberinto;
     private int width = 10;
     private int height = 10;
 
@@ -45,13 +45,13 @@ public class Laberinto extends Agent {
         
         //Configuración del GUI
         try {
-            ui = new GameUI(width, height);
+            laberinto = new GameUI(width, height);
         } catch (IOException ex) {
             Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InterruptedException ex) {
             Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
         }
-        ui.setVisible(true);
+        laberinto.setVisible(true);
 
         //Registro del agente en las Páginas Amarrillas
         DFAgentDescription dfd = new DFAgentDescription();
