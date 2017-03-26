@@ -48,6 +48,8 @@ public class Laberinto extends Agent {
             ui = new GameUI(width, height);
         } catch (IOException ex) {
             Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
         }
         ui.setVisible(true);
 

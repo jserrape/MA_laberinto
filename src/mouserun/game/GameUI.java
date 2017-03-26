@@ -3,6 +3,7 @@ package mouserun.game;
 import java.io.*;
 import javax.swing.*;
 import java.awt.*;
+import static java.lang.Thread.sleep;
 
 /**
  * Class GameUI is the Game Interface of the game. It uses standard JFrame etc
@@ -16,7 +17,6 @@ public class GameUI extends JFrame {
     private ImagedPanel[][] mazePanels;
     private JLayeredPane container;
 
-
     /**
      * Creates an instance of the GameUI.
      *
@@ -26,7 +26,7 @@ public class GameUI extends JFrame {
      * assets are missing.
      */
     public GameUI(int width, int height)
-            throws IOException {
+            throws IOException, InterruptedException {
         super(GameConfig.GAME_TITLE);
         GRID_LENGTH = GameConfig.GRID_LENGTH;
 
@@ -42,7 +42,7 @@ public class GameUI extends JFrame {
     // Loads and defines the frame of the user interface, the maze, the mouse
     // and the objects.
     // @throws IOException An IOException can occur if the required game assets are missing.
-    private void initialiseUI() throws IOException {
+    private void initialiseUI() throws IOException, InterruptedException {
         JFrame frame = new JFrame();
         frame.setResizable(false);
         frame.pack();
@@ -70,15 +70,43 @@ public class GameUI extends JFrame {
                 container.add(panel);
             }
         }
-
+        
+        //AQUI PINTO UNA RATA
+        ImagedPanel rata = new ImagedPanel("assets/mouseright.png", GRID_LENGTH, GRID_LENGTH);
+        rata.setBounds(getGridLeft(1), getGridTop(0), GRID_LENGTH * 2, 20);
+        rata.setOpaque(false);
+        container.add(rata);
+        container.moveToFront(rata);
     }
 
-    /*
-	 * (non-Javadoc)
-	 * @see mouserun.game.GameControllerAdapter#start()
-     */
-    public void start() {
-       // sequencer.start();
+    public void newMouse()
+            throws IOException {
+        String assetAddress = GameConfig.ASSETS_MOUSEUP;
+        ImagedPanel mousePanel = new ImagedPanel(assetAddress, GRID_LENGTH, GRID_LENGTH);
+        mousePanel.setOpaque(false);
+
+        JLabel label = new JLabel("009");
+        label.setForeground(Color.RED);
+        label.setBounds(getGridLeft(0), getGridTop(0), GRID_LENGTH * 2, 20);
+        label.setOpaque(false);
+
+        JLabel cheeselabel = new JLabel("009");
+        cheeselabel.setForeground(Color.ORANGE);
+        cheeselabel.setBackground(Color.ORANGE);
+        cheeselabel.setBounds(getGridLeft(0), getGridTop(0) - 20, GRID_LENGTH, 20);
+        cheeselabel.setOpaque(false);
+
+        mousePanel.setBounds(getGridLeft(0), getGridTop(0), GRID_LENGTH, GRID_LENGTH);
+        container.add(mousePanel);
+        container.add(label);
+        container.add(cheeselabel);
+        container.moveToFront(mousePanel);
+        container.moveToFront(label);
+        container.moveToFront(cheeselabel);
+
+        MouseRepresent mouseInstance = new MouseRepresent(controller, mousePanel, label, cheeselabel, GameConfig.ASSETS_MOUSEUP, GameConfig.ASSETS_MOUSEDOWN,
+                GameConfig.ASSETS_MOUSELEFT, GameConfig.ASSETS_MOUSERIGHT);
+
     }
 
     // Converts the Maze X value to the Left value of the Game Interface
