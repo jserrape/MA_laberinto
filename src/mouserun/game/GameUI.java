@@ -4,6 +4,7 @@ import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 import static java.lang.Thread.sleep;
+import java.util.ArrayList;
 
 /**
  * Class GameUI is the Game Interface of the game. It uses standard JFrame etc
@@ -16,6 +17,10 @@ public class GameUI extends JFrame {
     private int GRID_LENGTH = 30;
     private ImagedPanel[][] mazePanels;
     private JLayeredPane container;
+    
+    //Ratas y queso
+    private Queso quesito;
+    private ArrayList<Rata> arrayRatas;
 
     /**
      * Creates an instance of the GameUI.
@@ -70,13 +75,29 @@ public class GameUI extends JFrame {
                 container.add(panel);
             }
         }
+        iniciarQuesoYRatas();
         
-        //AQUI PINTO UNA RATA
+        
+
+    }
+    
+    public void iniciarQuesoYRatas() throws IOException{
+        //Busco las ratas, las almaceno en un arraylist y las meto al contenedor
+        arrayRatas = new ArrayList<>();
         Rata rata=new Rata("Nombre",1,0);
+        arrayRatas.add(rata);
+        
         container.add(rata.getPanel());
         container.moveToFront(rata.getPanel());
-        rata.setPosicion(8, 5);
+        container.add(rata.getJLabel());
+        container.moveToFront(rata.getJLabel());
+        
+        quesito=new Queso(5,0);
+        container.add(quesito.getPanel());
+        container.moveToFront(quesito.getPanel());
+    
     }
+    
 
     public void newMouse()
             throws IOException {
