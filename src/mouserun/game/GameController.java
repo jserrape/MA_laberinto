@@ -1,11 +1,9 @@
 package mouserun.game;
 
-
 public class GameController {
 
     private Maze maze;
     private int gridSize;
-   
 
     /**
      * Creates an instance of the controller.
@@ -38,7 +36,7 @@ public class GameController {
      * to begin.
      */
     public void start() {
-        
+
     }
 
     /**

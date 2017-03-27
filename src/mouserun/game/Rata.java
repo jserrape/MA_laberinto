@@ -43,10 +43,10 @@ public class Rata {
         this.x = _x;
         this.y = _y;
         panel.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
-        label.setBounds(x * GRID_LENGTH, y * GRID_LENGTH-5, GRID_LENGTH * 2, 20);
+        label.setBounds(x * GRID_LENGTH, y * GRID_LENGTH - 5, GRID_LENGTH * 2, 20);
     }
-    
-    public JLabel getJLabel(){
+
+    public JLabel getJLabel() {
         return label;
     }
 

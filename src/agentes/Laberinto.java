@@ -37,12 +37,14 @@ public class Laberinto extends Agent {
         argumentos = argumentos.replace("]", "");
         String[] arg = argumentos.split(" ");
         if (arg.length >= 1) {
-            width = Integer.parseInt(arg[0]);
+            if (!"".equals(arg[0])) {
+                width = Integer.parseInt(arg[0]);
+            }
         }
         if (arg.length >= 2) {
             height = Integer.parseInt(arg[1]);
         }
-        
+
         //Configuración del GUI
         try {
             laberinto = new GameUI(width, height);

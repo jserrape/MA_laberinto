@@ -17,7 +17,7 @@ public class GameUI extends JFrame {
     private int GRID_LENGTH = 30;
     private ImagedPanel[][] mazePanels;
     private JLayeredPane container;
-    
+
     //Ratas y queso
     private Queso quesito;
     private ArrayList<Rata> arrayRatas;
@@ -76,56 +76,23 @@ public class GameUI extends JFrame {
             }
         }
         iniciarQuesoYRatas();
-        
-        
 
     }
-    
-    public void iniciarQuesoYRatas() throws IOException{
+
+    public void iniciarQuesoYRatas() throws IOException {
         //Busco las ratas, las almaceno en un arraylist y las meto al contenedor
         arrayRatas = new ArrayList<>();
-        Rata rata=new Rata("Nombre",1,0);
+        Rata rata = new Rata("Nombre", 1, 0);
         arrayRatas.add(rata);
-        
+
         container.add(rata.getPanel());
         container.moveToFront(rata.getPanel());
         container.add(rata.getJLabel());
         container.moveToFront(rata.getJLabel());
-        
-        quesito=new Queso(5,0);
+
+        quesito = new Queso(5, 0);
         container.add(quesito.getPanel());
         container.moveToFront(quesito.getPanel());
-    
-    }
-    
-
-    public void newMouse()
-            throws IOException {
-        String assetAddress = GameConfig.ASSETS_MOUSEUP;
-        ImagedPanel mousePanel = new ImagedPanel(assetAddress, GRID_LENGTH, GRID_LENGTH);
-        mousePanel.setOpaque(false);
-
-        JLabel label = new JLabel("009");
-        label.setForeground(Color.RED);
-        label.setBounds(getGridLeft(0), getGridTop(0), GRID_LENGTH * 2, 20);
-        label.setOpaque(false);
-
-        JLabel cheeselabel = new JLabel("009");
-        cheeselabel.setForeground(Color.ORANGE);
-        cheeselabel.setBackground(Color.ORANGE);
-        cheeselabel.setBounds(getGridLeft(0), getGridTop(0) - 20, GRID_LENGTH, 20);
-        cheeselabel.setOpaque(false);
-
-        mousePanel.setBounds(getGridLeft(0), getGridTop(0), GRID_LENGTH, GRID_LENGTH);
-        container.add(mousePanel);
-        container.add(label);
-        container.add(cheeselabel);
-        container.moveToFront(mousePanel);
-        container.moveToFront(label);
-        container.moveToFront(cheeselabel);
-
-        MouseRepresent mouseInstance = new MouseRepresent(controller, mousePanel, label, cheeselabel, GameConfig.ASSETS_MOUSEUP, GameConfig.ASSETS_MOUSEDOWN,
-                GameConfig.ASSETS_MOUSELEFT, GameConfig.ASSETS_MOUSERIGHT);
 
     }
 
