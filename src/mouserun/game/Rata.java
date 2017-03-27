@@ -32,7 +32,7 @@ public class Rata {
         panel.setOpaque(false);
         label = new JLabel(nombre);
         label.setForeground(Color.RED);
-        label.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
+        label.setBounds(x * GRID_LENGTH, y * GRID_LENGTH - 5, GRID_LENGTH * 2, 20);
     }
 
     public ImagedPanel getPanel() {
