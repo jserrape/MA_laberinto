@@ -3,7 +3,6 @@ package mouserun.game;
 import java.io.*;
 import javax.swing.*;
 import java.awt.*;
-import static java.lang.Thread.sleep;
 import java.util.ArrayList;
 
 /**
@@ -13,7 +12,6 @@ import java.util.ArrayList;
 public class GameUI extends JFrame {
 
     private Maze maze;
-    private GameController controller;
     private int GRID_LENGTH = 30;
     private ImagedPanel[][] mazePanels;
     private JLayeredPane container;
@@ -27,26 +25,24 @@ public class GameUI extends JFrame {
      *
      * @param width The width of the user interface.
      * @param height The height of the user interface.
-     * @throws IOException An IOException can occur when the required game
-     * assets are missing.
+     * @throws IOException An IOException can occur when the required game assets are missing.
+     * @throws java.lang.InterruptedException
      */
-    public GameUI(int width, int height)
-            throws IOException, InterruptedException {
-        super(GameConfig.GAME_TITLE);
-        GRID_LENGTH = GameConfig.GRID_LENGTH;
+    public GameUI(int width, int height) throws IOException, InterruptedException {
+        super("Agente raton de UJAtaco");
+        GRID_LENGTH = 30;
 
-        this.controller = new GameController(width, height, GRID_LENGTH);
         this.mazePanels = new ImagedPanel[width][height];
-        this.maze = this.controller.getMaze();
+        this.maze = new Maze(width, height);
 
         initialiseUI();
-        controller.start();
-
     }
 
-    // Loads and defines the frame of the user interface, the maze, the mouse
-    // and the objects.
-    // @throws IOException An IOException can occur if the required game assets are missing.
+    /**
+     * Se inicializa la interfaz, y se busca a los agentes que participan
+     * @throws IOException  can occur if the required game assets are missing.
+     * @throws InterruptedException  can occur if the required game assets are missing.
+     */
     private void initialiseUI() throws IOException, InterruptedException {
         JFrame frame = new JFrame();
         frame.setResizable(false);
@@ -79,6 +75,10 @@ public class GameUI extends JFrame {
 
     }
 
+    /**
+     * Busca los agentes Raton, los mete en el juego, y genera un queso
+     * @throws IOException  can occur if the required game assets are missing.
+     */
     public void iniciarQuesoYRatas() throws IOException {
         //Busco las ratas, las almaceno en un arraylist y las meto al contenedor
         arrayRatas = new ArrayList<>();
@@ -95,13 +95,21 @@ public class GameUI extends JFrame {
         container.moveToFront(quesito.getPanel());
 
     }
-
-    // Converts the Maze X value to the Left value of the Game Interface
+ 
+    /**
+     * Converts the Maze X value to the Left value of the Game Interface
+     * @param x Valor de la casilla
+     * @return Left value
+     */
     private int getGridLeft(int x) {
         return x * GRID_LENGTH;
     }
 
-    // Converts the Maze Y value to the Top value of the Game Interface
+    /**
+     * Converts the Maze Y value to the Top value of the Game Interface
+     * @param y Valor de la casilla
+     * @return Top value
+     */
     private int getGridTop(int y) {
         return (maze.getHeight() - y - 1) * GRID_LENGTH;
     }

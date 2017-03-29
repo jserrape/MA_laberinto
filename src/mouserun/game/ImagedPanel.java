@@ -1,23 +1,3 @@
-/**
- * MouseRun. A programming game to practice building intelligent things.
- * Copyright (C) 2013  Muhammad Mustaqim
- *
- * This file is part of MouseRun.
- *
- * MouseRun is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * MouseRun is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with MouseRun.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
 package mouserun.game;
 
 import java.io.*;
@@ -32,8 +12,7 @@ import java.awt.image.*;
  * the JPanel. It also stores image buffers to lower the IO cost if the image is
  * used again.
  */
-public class ImagedPanel
-        extends JPanel {
+public class ImagedPanel extends JPanel {
 
     private int width;
     private int height;
@@ -50,8 +29,7 @@ public class ImagedPanel
      * @throws IOException IOException can occur if the asset specified is
      * missing.
      */
-    public ImagedPanel(String assetAddress, int width, int height)
-            throws IOException {
+    public ImagedPanel(String assetAddress, int width, int height) throws IOException {
         this.width = width;
         this.height = height;
         this.cache = new Hashtable<String, BufferedImage>();

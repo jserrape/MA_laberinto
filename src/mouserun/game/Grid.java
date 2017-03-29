@@ -104,7 +104,9 @@ public class Grid {
                 + (canGoLeft() ? "-" : "0") + ".png";
     }
 
-    // Determine if going to a certain position from this grid is possible.
+    /**
+     * Determine if going to a certain position from this grid is possible.
+     */
     private boolean canGo(int x, int y) {
         return getGrid(x, y) != null;
     }
@@ -121,31 +123,42 @@ public class Grid {
                 }
             }
         }
-
         return null;
     }
 
-    // Gets the right grid
+    /**
+     * @return Gets the right grid
+     */
     Grid right() {
         return getGrid(x + 1, y);
     }
 
-    // Gets the left grid
+    /**
+     * @return Gets the left grid
+     */
     Grid left() {
         return getGrid(x - 1, y);
     }
 
-    // Gets the grid above
+
+    /**
+     * @return Gets the grid above
+     */
     Grid up() {
         return getGrid(x, y + 1);
     }
 
-    // Gets the grid below
+    /**
+     * @return Gets the grid below
+     */
     Grid down() {
         return getGrid(x, y - 1);
     }
 
-    // Gets all walls connected to this grid.
+
+    /**
+     * @return Gets all walls connected to this grid.
+     */
     ArrayList<Wall> getWalls() {
         return this.walls;
     }

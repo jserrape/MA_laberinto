@@ -27,8 +27,10 @@ public class Maze {
         buildMaze();
     }
 
-    // Builds the structure of the maze and adding walls to each grid to 
-    // connect the grids to another. This will call the generateMaze method.
+    /**
+     * Builds the structure of the maze and adding walls to each grid to connect
+     * the grids to another. This will call the generateMaze method.
+     */
     private void buildMaze() {
         grids = new Grid[this.width][this.height];
         ArrayList<Wall> walls = new ArrayList<Wall>();
@@ -68,11 +70,13 @@ public class Maze {
         generateMaze();
     }
 
-    // Generates the maze using the Depth First Search algorithm. However, the
-    // DFS algorithm only produce one path from one grid to another grid. Walls
-    // will be opened at random in attempt to produce multiple paths for some
-    // scenarios. The number of randomly opened walls will be 3% of the remaining
-    // closed walls.
+    /**
+     * Generates the maze using the Depth First Search algorithm. However, the
+     * DFS algorithm only produce one path from one grid to another grid. Walls
+     * will be opened at random in attempt to produce multiple paths for some
+     * scenarios. The number of randomly opened walls will be 3% of the
+     * remaining closed walls.
+     */
     private void generateMaze() {
 
         ArrayList<Grid> unvisitedGrids = new ArrayList<Grid>();
@@ -125,7 +129,7 @@ public class Maze {
             }
         }
 
-        int closedWallsToOpen = (int) (GameConfig.RATIO_CLOSED_WALL_TO_OPEN * closedWalls.size());
+        int closedWallsToOpen = (int) (0.03 * closedWalls.size());
         for (int i = 0; i < closedWallsToOpen; i++) {
             closedWalls.get(random.nextInt(closedWalls.size())).setOpened(true);
         }
