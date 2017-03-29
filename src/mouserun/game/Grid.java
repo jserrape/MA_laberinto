@@ -103,6 +103,29 @@ public class Grid {
                 + (canGoRight() ? "-" : "0")
                 + (canGoLeft() ? "-" : "0") + ".png";
     }
+    
+    public void puedo(){
+        if(canGoUp()){
+            System.out.println("Puedo canGoUp()");
+        }else{
+            System.out.println("No puedo canGoUp()");
+        }
+        if(canGoDown()){
+            System.out.println("Puedo canGoDown()");
+        }else{
+            System.out.println("No puedo canGoDown()");
+        }
+        if(canGoLeft()){
+            System.out.println("Puedo canGoLeft()");
+        }else{
+            System.out.println("No puedo canGoLeft()");
+        }
+        if(canGoRight()){
+            System.out.println("Puedo canGoRight()");
+        }else{
+            System.out.println("No puedo canGoRight()");
+        }
+    }
 
     /**
      * Determine if going to a certain position from this grid is possible.

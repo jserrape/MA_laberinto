@@ -81,6 +81,7 @@ public class GameUI extends JFrame {
      */
     public void iniciarQuesoYRatas() throws IOException {
         //Busco las ratas, las almaceno en un arraylist y las meto al contenedor
+        maze.getGrid(0, 0).puedo();
         arrayRatas = new ArrayList<>();
         Rata rata = new Rata("Nombre", 1, 0);
         arrayRatas.add(rata);
