@@ -5,14 +5,19 @@
  */
 package agentes;
 
+import jade.core.AID;
 import mouserun.game.*;
 
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +29,8 @@ import java.util.logging.Logger;
 public class Laberinto extends Agent {
 
     //Variables del agente
+    private AID[] agentesConsola;
+    private ArrayList<String> mensajesPendientes;
     private GameUI laberinto;
     private int width = 10;
     private int height = 10;
@@ -31,6 +38,7 @@ public class Laberinto extends Agent {
     @Override
     protected void setup() {
         //Inicializar variables del agente
+        mensajesPendientes = new ArrayList();
         String argumentos;
         argumentos = Arrays.toString(this.getArguments());
         argumentos = argumentos.replace("[", "");
@@ -73,6 +81,8 @@ public class Laberinto extends Agent {
         //
         System.out.println("Se inicia la ejecución del agente: " + this.getName());
         //Añadir las tareas principales
+        addBehaviour(new TareaBuscarConsola(this, 5000));
+        addBehaviour(new TareaEnvioConsola());
     }
 
     @Override
@@ -90,5 +100,62 @@ public class Laberinto extends Agent {
     }
 
     //Métodos de trabajo del agente
+    
+    public ArrayList<String> getMensajesPendientes() {
+        return mensajesPendientes;
+    }
+
     //Clases internas que representan las tareas del agente
+    
+    public class TareaEnvioConsola extends CyclicBehaviour {
+
+        @Override
+        public void action() {
+            ACLMessage mensaje;
+            if (agentesConsola != null) {
+                if (!mensajesPendientes.isEmpty()) {
+                    mensaje = new ACLMessage(ACLMessage.INFORM);
+                    mensaje.setSender(myAgent.getAID());
+                    mensaje.addReceiver(agentesConsola[0]);
+                    mensaje.setContent(mensajesPendientes.remove(0));
+
+                    myAgent.send(mensaje);
+                } else {
+                    block();
+                }
+            }
+        }
+    }
+    
+    public class TareaBuscarConsola extends TickerBehaviour {
+
+        //Se buscarán consolas 
+        public TareaBuscarConsola(Agent a, long period) {
+            super(a, period);
+        }
+
+        @Override
+        protected void onTick() {
+            //Busca agentes consola
+            DFAgentDescription template = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setName("Consola");
+            template.addServices(sd);
+            try {
+                DFAgentDescription[] result = DFService.search(myAgent, template);
+                if (result.length > 0) {
+                    agentesConsola = new AID[result.length];
+                    for (int i = 0; i < result.length; ++i) {
+                        agentesConsola[i] = result[i].getName();
+                    }
+                } else {
+                    //No se han encontrado agentes consola
+                    agentesConsola = null;
+                }
+            } catch (FIPAException fe) {
+                fe.printStackTrace();
+            }
+        }
+    }
+    
 }
