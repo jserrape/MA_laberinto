@@ -18,7 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ *  
  * @author jcsp0003
  */
 public class Laberinto extends Agent {
