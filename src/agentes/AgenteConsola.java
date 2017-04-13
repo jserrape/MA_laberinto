@@ -17,6 +17,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import java.util.ArrayList;
 import java.util.Iterator;
+import laberinto.OntologiaLaberinto;
 import utilidad.MensajeConsola;
 
 /**
@@ -42,8 +43,8 @@ public class AgenteConsola extends Agent {
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
 	ServiceDescription sd = new ServiceDescription();
-	sd.setType("GUI");
-	sd.setName("Consola");
+	sd.setType(OntologiaLaberinto.REGISTRO_CONSOLA);
+        sd.setName(getLocalName());
 	dfd.addServices(sd);
 	try {
             DFService.register(this, dfd);

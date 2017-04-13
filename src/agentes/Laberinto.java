@@ -5,6 +5,11 @@
  */
 package agentes;
 
+import jade.content.ContentManager;
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.BeanOntologyException;
+import jade.content.onto.Ontology;
 import jade.core.AID;
 import mouserun.game.*;
 
@@ -15,15 +20,17 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import laberinto.OntologiaLaberinto;
 
 /**
- *  
+ *
  * @author jcsp0003
  */
 public class Laberinto extends Agent {
@@ -34,6 +41,14 @@ public class Laberinto extends Agent {
     private GameUI laberinto;
     private int width = 10;
     private int height = 10;
+
+    private ContentManager manager = (ContentManager) getContentManager();
+
+    // El lenguaje utilizado por el agente para la comunicación es SL 
+    private Codec codec = new SLCodec();
+
+    // La ontología que utilizará el agente
+    private Ontology ontology;
 
     @Override
     protected void setup() {
@@ -62,24 +77,39 @@ public class Laberinto extends Agent {
             Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
         }
         laberinto.setVisible(true);
-
-        //Registro del agente en las Páginas Amarrillas
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.setName(getAID());
-        ServiceDescription sd = new ServiceDescription();
-        sd.setType("GUI");
-        sd.setName("Laberinto");
-        dfd.addServices(sd);
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        //Obtenemos la instancia de la ontología y registramos el lenguaje
+        //y la ontología para poder completar el contenido de los mensajes
         try {
+            ontology = OntologiaLaberinto.getInstance();
+        } catch (BeanOntologyException ex) {
+            Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        manager.registerLanguage(codec);
+        manager.registerOntology(ontology);
+
+        System.out.println("El agente " + getName() + " esperando para CFP...");
+
+        //Registro del agente en las páginas amarillas
+        try {
+            DFAgentDescription dfd = new DFAgentDescription();
+            dfd.setName(getAID());
+            ServiceDescription sd = new ServiceDescription();
+            sd.setName(getLocalName());
+            sd.setType(OntologiaLaberinto.REGISTRO_LABERINTO);
+            // Agents that want to use this service need to "know" the weather-forecast-ontology
+            sd.addOntologies(OntologiaLaberinto.ONTOLOGY_NAME);
+            // Agents that want to use this service need to "speak" the FIPA-SL language
+            sd.addLanguages(FIPANames.ContentLanguage.FIPA_SL);
+            dfd.addServices(sd);
+
             DFService.register(this, dfd);
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
 
-        //Registro de la Ontología
-        //
-        //
-        System.out.println("Se inicia la ejecución del agente: " + this.getName());
         //Añadir las tareas principales
         addBehaviour(new TareaBuscarConsola(this, 5000));
         addBehaviour(new TareaEnvioConsola());
@@ -100,13 +130,11 @@ public class Laberinto extends Agent {
     }
 
     //Métodos de trabajo del agente
-    
     public ArrayList<String> getMensajesPendientes() {
         return mensajesPendientes;
     }
 
     //Clases internas que representan las tareas del agente
-    
     public class TareaEnvioConsola extends CyclicBehaviour {
 
         @Override
@@ -126,7 +154,7 @@ public class Laberinto extends Agent {
             }
         }
     }
-    
+
     public class TareaBuscarConsola extends TickerBehaviour {
 
         //Se buscarán consolas 
@@ -157,5 +185,5 @@ public class Laberinto extends Agent {
             }
         }
     }
-    
+
 }
