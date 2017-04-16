@@ -15,16 +15,25 @@ import mouserun.game.*;
 
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.proto.SubscriptionResponder;
+import jade.proto.SubscriptionResponder.Subscription;
+import jade.proto.SubscriptionResponder.SubscriptionManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import laberinto.OntologiaLaberinto;
@@ -34,6 +43,8 @@ import laberinto.OntologiaLaberinto;
  * @author jcsp0003
  */
 public class Laberinto extends Agent {
+
+    private Set<Subscription> suscripciones = new HashSet<>();
 
     //Variables del agente
     private AID[] agentesConsola;
@@ -110,6 +121,27 @@ public class Laberinto extends Agent {
             fe.printStackTrace();
         }
 
+        System.out.println(this.getLocalName() + ": Esperando suscripciones...");
+        MessageTemplate template = SubscriptionResponder.createMessageTemplate(ACLMessage.SUBSCRIBE);
+        //Se añade un comportamiento que cada 5 segundos envía un mensaje a todos los suscriptores.
+        //this.addBehaviour(new EnviarSemanal(this, (long) 5000));
+
+        //Se añade un comportamiento que maneja los mensajes recibidos para suscribirse.
+        //Habrá que crear primero el SubscriptionManager que registrará y eliminará las suscripciones.
+        SubscriptionManager gestor = new SubscriptionManager() {
+
+            public boolean register(Subscription suscripcion) {
+                suscripciones.add(suscripcion);
+                return true;
+            }
+
+            public boolean deregister(Subscription suscripcion) {
+                suscripciones.remove(suscripcion);
+                return true;
+            }
+        };
+        this.addBehaviour(new HacerSuscripcion(this, template, gestor));
+
         //Añadir las tareas principales
         addBehaviour(new TareaBuscarConsola(this, 5000));
         addBehaviour(new TareaEnvioConsola());
@@ -182,6 +214,62 @@ public class Laberinto extends Agent {
                 }
             } catch (FIPAException fe) {
                 fe.printStackTrace();
+            }
+        }
+    }
+
+    private class HacerSuscripcion extends SubscriptionResponder {
+
+        private Subscription suscripcion;
+
+        public HacerSuscripcion(Agent agente, MessageTemplate plantilla, SubscriptionManager gestor) {
+            super(agente, plantilla, gestor);
+        }
+
+        //Método que maneja la suscripcion
+        @Override
+        protected ACLMessage handleSubscription(ACLMessage propuesta) throws NotUnderstoodException, RefuseException {
+            System.out.printf("%s: SUSCRIBE recibido de %s.\n", Laberinto.this.getLocalName(), propuesta.getSender().getLocalName());
+            System.out.printf("%s: La propuesta es: %s.\n", Laberinto.this.getLocalName(), propuesta.getContent());
+            //Crea la suscripcion
+            this.suscripcion = this.createSubscription(propuesta);
+
+            //El SubscriptionManager registra la suscripcion
+            this.mySubscriptionManager.register(suscripcion);
+
+            //Acepta la propuesta y la envía
+            ACLMessage agree = propuesta.createReply();
+            agree.setPerformative(ACLMessage.AGREE);
+            return agree;
+        }
+    }
+
+    private class PosicionQueso extends OneShotBehaviour {
+
+        @Override
+        public void action() {
+            //Se crea y rellena el mensaje con la información que desea enviar.
+            ACLMessage mensaje = new ACLMessage(ACLMessage.INFORM);
+            mensaje.setContent("Simulacion de mensaje");
+
+            //Se envía un mensaje a cada suscriptor
+            for (Subscription suscripcion : Laberinto.this.suscripciones) {
+                suscripcion.notify(mensaje);
+            }
+        }
+    }
+    
+    private class GanadorPartida extends OneShotBehaviour {
+
+        @Override
+        public void action() {
+            //Se crea y rellena el mensaje con la información que desea enviar.
+            ACLMessage mensaje = new ACLMessage(ACLMessage.INFORM);
+            mensaje.setContent("Simulacion de mensaje");
+
+            //Se envía un mensaje a cada suscriptor
+            for (Subscription suscripcion : Laberinto.this.suscripciones) {
+                suscripcion.notify(mensaje);
             }
         }
     }

@@ -81,13 +81,17 @@ public class AgenteRaton extends Agent {
             Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        //Plantilla la exploración del mensaje para el protocolo Subscribe
-        MessageTemplate mt = MessageTemplate.and(
-                MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE),
-                MessageTemplate.MatchPerformative(ACLMessage.CFP));
+        //Mensaje para el protocolo Subscribe
+        ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
+        mensaje.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
+        mensaje.setContent("Apuntame a las partidas de busqueda de quesos.");
+        
+        //Se añade el destinatario del mensaje
+        AID id = new AID();
+        id.setLocalName(LaberintoOntologia.REGISTRO_LABERINTO);
+        mensaje.addReceiver(id);
 
-        ACLMessage msg = blockingReceive(mt);
-        addBehaviour(new InformarPartida(this, msg));
+        addBehaviour(new InformarPartida(this, mensaje));
         addBehaviour(new AgenteRaton.TareaBuscarConsola(this, 5000));
         addBehaviour(new AgenteRaton.TareaEnvioConsola());
     }
