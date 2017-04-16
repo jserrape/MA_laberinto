@@ -177,6 +177,13 @@ public class AgenteRaton extends Agent {
         protected void handleRefuse(ACLMessage inform) {
             System.out.println("Solicitud rechazada");
         }
+        
+        
+        //Maneja la informacion enviada: INFORM
+        @Override
+        protected void handleInform(ACLMessage inform) {
+            System.out.println("Ha llegado un mensaje INFORM");
+        }
 
     }
 }
