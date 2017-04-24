@@ -130,6 +130,7 @@ public class AgenteRaton extends Agent {
         @Override
         protected void handleInform(ACLMessage ganador) {
             mensajesPendientes.add("Me ha llegado algo por el subscribe");
+
         }
 
         //Maneja la respuesta en caso de fallo: FAILURE

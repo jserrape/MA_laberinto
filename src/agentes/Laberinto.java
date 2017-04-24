@@ -5,7 +5,9 @@
  */
 package agentes;
 
+import jade.content.ContentElement;
 import jade.content.ContentManager;
+import jade.content.abs.AbsContentElement;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.BeanOntologyException;
@@ -14,8 +16,9 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import mouserun.game.*;
-
+import java.util.Iterator;
 import jade.core.Agent;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -28,6 +31,7 @@ import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.SubscriptionResponder;
+import jade.proto.SubscriptionResponder.Subscription;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +40,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import juegos.elementos.InformarPartida;
+import juegos.elementos.Jugador;
+import juegos.elementos.Partida;
+import juegos.elementos.Posicion;
 import laberinto.OntologiaLaberinto;
+import laberinto.elementos.PosicionQueso;
 
 /**
  *
@@ -53,19 +61,24 @@ public class Laberinto extends Agent {
     private int width = 10;
     private int height = 10;
 
+    //Elementos de control de la partida
+    private int numPartida;
+    private Partida partidaActual;
+
     //Variables para la ontologia
     private ContentManager manager = (ContentManager) getContentManager();
     private Codec codec = new SLCodec();
     private Ontology ontology;
 
     //Control de subscripciones
-    private Set<SubscriptionResponder.Subscription> suscripcionesJugadores;
+    private Set<Subscription> suscripcionesJugadores;
 
     @Override
     protected void setup() {
         //Inicializar variables del agente
         mensajesPendientes = new ArrayList();
         suscripcionesJugadores = new HashSet();
+        numPartida = 0;
 
         //CREACION DE LA INTERFAZ DEL LABERINTO
         String argumentos;
@@ -164,6 +177,7 @@ public class Laberinto extends Agent {
             agree.setPerformative(ACLMessage.AGREE);
 
             mensajesPendientes.add("Suscripción registrada al agente: " + subscription.getSender().getLocalName() + " a la partida: " + partida.getPartida().getIdPartida());
+            addBehaviour(new EnviarPosicionQueso());
             return agree;
         }
 
@@ -179,6 +193,50 @@ public class Laberinto extends Agent {
             mensajesPendientes.add("Suscripción cancelada del agente: " + cancel.getSender().getLocalName());
             return cancelado;
         }
+    }
+
+    private class EnviarPosicionQueso extends OneShotBehaviour {
+
+        @Override
+        public void action() {
+            Partida p = new Partida(this.myAgent.getLocalName() + "-" + numPartida, "Juego"); //Cambiar por la partida actual
+            Posicion posQ = new Posicion(5, 5);
+            Jugador j = null;
+            PosicionQueso pq = new PosicionQueso(p, posQ, j);
+
+            InformarPartida partidaFinalizada = null;
+            Iterator it;
+            Subscription suscripcion;
+            ACLMessage msg;
+
+            it = suscripcionesJugadores.iterator();
+            while (it.hasNext()) {
+                suscripcion = (Subscription) it.next();
+                msg = suscripcion.getMessage();
+
+                Action ac;
+                try {
+                    ac = (Action) manager.extractContent(msg);
+                    partidaFinalizada = (InformarPartida) ac.getAction();
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                ACLMessage msgPosQueso = new ACLMessage(ACLMessage.INFORM);
+                //msg.setSender(myAgent.getAID());
+                msgPosQueso.setLanguage(codec.getName());
+                msgPosQueso.setOntology(ontology.getName());
+                try {
+                    manager.fillContent(msgPosQueso, (AbsContentElement) pq); //<------------------------------------------------
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                suscripcion.notify(msgPosQueso);
+
+                mensajesPendientes.add("Envio INFORM al agente: \n" + msg.getSender().getLocalName());
+            }
+        }
+
     }
 
     public class TareaBuscarConsolas extends TickerBehaviour {
