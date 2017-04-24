@@ -5,7 +5,13 @@
  */
 package agentes;
 
-
+import jade.content.ContentManager;
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.BeanOntologyException;
+import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
@@ -13,8 +19,14 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.proto.SubscriptionInitiator;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import juegos.elementos.InformarPartida;
+import juegos.elementos.Partida;
 import laberinto.OntologiaLaberinto;
 
 /**
@@ -27,15 +39,63 @@ public class AgenteRaton extends Agent {
     private AID[] agentesConsola;
     private ArrayList<String> mensajesPendientes;
 
-    
+    //Elementos para la ontologia
+    private Codec codec = new SLCodec();
+    private Ontology ontologia;
+    private ContentManager manager = (ContentManager) getContentManager();
+
     @Override
     protected void setup() {
-        
         mensajesPendientes = new ArrayList();
-        
+
+        DFAgentDescription dfd = new DFAgentDescription();
+        ServiceDescription sd = new ServiceDescription();
+
+        try {
+            ontologia = OntologiaLaberinto.getInstance();
+            manager.registerLanguage(codec);
+            manager.registerOntology(ontologia);
+        } catch (BeanOntologyException ex) {
+            Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        sd.addOntologies(OntologiaLaberinto.ONTOLOGY_NAME);
+        //registro paginas amarillas
+        try {
+            sd.setName(this.getLocalName());
+            sd.setType(OntologiaLaberinto.REGISTRO_RATON);
+            dfd.addServices(sd);
+            DFService.register(this, dfd);
+        } catch (FIPAException fe) {
+        }
+
+        //Se crea un mensaje de tipo SUBSCRIBE y se asocia al protocolo FIPA-Subscribe.
+        Partida p = new Partida(this.getLocalName(), "Base");
+        InformarPartida inf = new InformarPartida(p);
+
+        ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
+        mensaje.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
+        mensaje.setSender(this.getAID());
+        mensaje.setLanguage(codec.getName());
+        mensaje.setOntology(ontologia.getName());
+
+        try {
+            Action action = new Action(getAID(), inf);
+            manager.fillContent(mensaje, action);
+        } catch (Codec.CodecException | OntologyException ex) {
+            Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        //Se añade el destinatario del mensaje
+        AID id = new AID();
+        id.setLocalName(OntologiaLaberinto.REGISTRO_LABERINTO);
+        mensaje.addReceiver(id);
+
+        //ME REGISTRO AL SUBSCRIBE
+        addBehaviour(new InformarPartidaSubscribe(this, mensaje));
+
         addBehaviour(new TareaBuscarConsolas(this, 5000));
-        addBehaviour(new TareaEnvioConsola(this,500));
-        mensajesPendientes.add("Inicializacion del raton "+this.getLocalName()+" acabada.");
+        addBehaviour(new TareaEnvioConsola(this, 500));
+        mensajesPendientes.add("Inicializacion del raton " + this.getLocalName() + " acabada.");
     }
 
     @Override
@@ -45,11 +105,44 @@ public class AgenteRaton extends Agent {
         //Liberación de recursos, incluido el GUI
         //Despedida
         System.out.println("Finaliza la ejecución del agente: " + this.getName());
+
     }
 
-    /**
-     * Tarea que localizará los agentes consola presentes en la plataforma
-     */
+    private class InformarPartidaSubscribe extends SubscriptionInitiator {
+
+        public InformarPartidaSubscribe(Agent agente, ACLMessage mensaje) {
+            super(agente, mensaje);
+        }
+
+        //Maneja la respuesta en caso que acepte: AGREE
+        @Override
+        protected void handleAgree(ACLMessage inform) {
+            mensajesPendientes.add("Mi subscripcion al laberinto ha sido aceptada");
+        }
+
+        // Maneja la respuesta en caso que rechace: REFUSE
+        @Override
+        protected void handleRefuse(ACLMessage inform) {
+            mensajesPendientes.add("Mi subscripcion al laberinto ha sido rechazada");
+        }
+
+        //Maneja la informacion enviada: INFORM
+        @Override
+        protected void handleInform(ACLMessage ganador) {
+            mensajesPendientes.add("Me ha llegado algo por el subscribe");
+        }
+
+        //Maneja la respuesta en caso de fallo: FAILURE
+        @Override
+        protected void handleFailure(ACLMessage failure) {
+
+        }
+
+        @Override
+        public void cancellationCompleted(AID agente) {
+        }
+    }
+
     public class TareaBuscarConsolas extends TickerBehaviour {
 
         //Se buscarán agentes consola y operación
