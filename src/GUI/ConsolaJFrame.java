@@ -6,7 +6,7 @@
 package GUI;
 
 import jade.core.Agent;
-import utilidad.MensajeConsola;
+import util.MensajeConsola;
 
 /**
  *

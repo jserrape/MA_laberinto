@@ -18,7 +18,7 @@ import jade.lang.acl.MessageTemplate;
 import java.util.ArrayList;
 import java.util.Iterator;
 import laberinto.OntologiaLaberinto;
-import utilidad.MensajeConsola;
+import util.MensajeConsola;
 
 /**
  *
@@ -44,7 +44,7 @@ public class AgenteConsola extends Agent {
         dfd.setName(getAID());
 	ServiceDescription sd = new ServiceDescription();
 	sd.setType(OntologiaLaberinto.REGISTRO_CONSOLA);
-        sd.setName(getLocalName());
+	sd.setName(OntologiaLaberinto.REGISTRO_CONSOLA);
 	dfd.addServices(sd);
 	try {
             DFService.register(this, dfd);
@@ -99,10 +99,6 @@ public class AgenteConsola extends Agent {
     }
     
     //Tareas del agente consola
-
-    /**
-     * 
-     */
     public class TareaRecepcionMensajes extends CyclicBehaviour {
 
         @Override
@@ -124,29 +120,6 @@ public class AgenteConsola extends Agent {
     
     }
     
-    /**
-     * Informa de la recepción de un mensaje de otro agente
-     */
-    public class TareaEnviarRespuesta extends OneShotBehaviour {
-        private ACLMessage mensaje;
-
-        public TareaEnviarRespuesta(ACLMessage mensajee) {
-            this.mensaje = mensajee;
-        }
-
-        @Override
-        public void action() {
-            ACLMessage respuesta = mensaje.createReply();
-            respuesta.setPerformative(ACLMessage.CONFIRM);
-            respuesta.setContent("El agente " + this.getAgent().getName() + " ha recibido el mensaje de " + mensaje.getSender().getName());
-            send(respuesta);
-        }
-
-    }
-    
-    /**
-     * Envia un mensaje por consola
-     */
     public class TareaPresentarMensaje extends OneShotBehaviour {
 
         @Override
