@@ -27,6 +27,7 @@ public class AgenteRaton extends Agent {
     private AID[] agentesConsola;
     private ArrayList<String> mensajesPendientes;
 
+    
     @Override
     protected void setup() {
         
