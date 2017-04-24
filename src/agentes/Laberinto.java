@@ -10,15 +10,16 @@ import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.BeanOntologyException;
 import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 import jade.core.AID;
 import mouserun.game.*;
 
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.FailureException;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -27,8 +28,6 @@ import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.proto.SubscriptionResponder;
-import jade.proto.SubscriptionResponder.Subscription;
-import jade.proto.SubscriptionResponder.SubscriptionManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +35,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import juegos.elementos.InformarPartida;
 import laberinto.OntologiaLaberinto;
 
 /**
@@ -44,19 +44,30 @@ import laberinto.OntologiaLaberinto;
  */
 public class Laberinto extends Agent {
 
-    //Variables del agente
+    //Variables del para la consola
     private AID[] agentesConsola;
     private ArrayList<String> mensajesPendientes;
+
+    //Variables del laberinto
     private GameUI laberinto;
     private int width = 10;
     private int height = 10;
 
-    
+    //Variables para la ontologia
+    private ContentManager manager = (ContentManager) getContentManager();
+    private Codec codec = new SLCodec();
+    private Ontology ontology;
+
+    //Control de subscripciones
+    private Set<SubscriptionResponder.Subscription> suscripcionesJugadores;
 
     @Override
     protected void setup() {
         //Inicializar variables del agente
         mensajesPendientes = new ArrayList();
+        suscripcionesJugadores = new HashSet();
+
+        //CREACION DE LA INTERFAZ DEL LABERINTO
         String argumentos;
         argumentos = Arrays.toString(this.getArguments());
         argumentos = argumentos.replace("[", "");
@@ -70,17 +81,43 @@ public class Laberinto extends Agent {
         if (arg.length >= 2) {
             height = Integer.parseInt(arg[1]);
         }
-
-        //Configuración del GUI
         try {
             laberinto = new GameUI(width, height);
         } catch (IOException | InterruptedException ex) {
             Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
         }
         laberinto.setVisible(true);
-        
+
+        //REGISTRO DE LA ONTOLOGIA
+        try {
+            ontology = OntologiaLaberinto.getInstance();
+        } catch (BeanOntologyException ex) {
+            Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        manager.registerLanguage(codec);
+        manager.registerOntology(ontology);
+        // Anadimos la tarea para las suscripciones
+        // Primero creamos el gestor de las suscripciones
+        SubscriptionResponder.SubscriptionManager gestorSuscripciones = new SubscriptionResponder.SubscriptionManager() {
+            @Override
+            public boolean register(SubscriptionResponder.Subscription s) throws RefuseException, NotUnderstoodException {
+                suscripcionesJugadores.add(s);
+                return true;
+            }
+
+            @Override
+            public boolean deregister(SubscriptionResponder.Subscription s) throws FailureException {
+                suscripcionesJugadores.remove(s);
+                return true;
+            }
+
+        };
+        // Plantilla del mensaje de suscripción
+        MessageTemplate plantilla = MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
+
+        addBehaviour(new TareaInformarPartida(this, plantilla, gestorSuscripciones));
         addBehaviour(new TareaBuscarConsolas(this, 5000));
-        addBehaviour(new TareaEnvioConsola(this,500));
+        addBehaviour(new TareaEnvioConsola(this, 500));
         mensajesPendientes.add("Inicializacion del laberinto acabada");
     }
 
@@ -98,9 +135,52 @@ public class Laberinto extends Agent {
         System.out.println("Finaliza la ejecución del agente: " + this.getName());
     }
 
-    /**
-     * Tarea que localizará los agentes consola presentes en la plataforma
-     */
+    public class TareaInformarPartida extends SubscriptionResponder {
+
+        private SubscriptionResponder.Subscription suscripcionJugador;
+
+        public TareaInformarPartida(Agent a, MessageTemplate mt, SubscriptionResponder.SubscriptionManager sm) {
+            super(a, mt, sm);
+        }
+
+        @Override
+        protected ACLMessage handleSubscription(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
+            InformarPartida partida = null;
+
+            Action ac;
+            try {
+                ac = (Action) manager.extractContent(subscription);
+                partida = (InformarPartida) ac.getAction();
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            // Registra la suscripción del Jugador
+            suscripcionJugador = createSubscription(subscription);
+            mySubscriptionManager.register(suscripcionJugador);
+
+            // Responde afirmativamente con la operación
+            ACLMessage agree = subscription.createReply();
+            agree.setPerformative(ACLMessage.AGREE);
+
+            mensajesPendientes.add("Suscripción registrada al agente: " + subscription.getSender().getLocalName() + " a la partida: " + partida.getPartida().getIdPartida());
+            return agree;
+        }
+
+        @Override
+        protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
+            // Eliminamos la suscripción
+            mySubscriptionManager.deregister(suscripcionJugador);
+
+            // Informe de la cancelación
+            ACLMessage cancelado = cancel.createReply();
+            cancelado.setPerformative(ACLMessage.INFORM);
+
+            mensajesPendientes.add("Suscripción cancelada del agente: " + cancel.getSender().getLocalName());
+            return cancelado;
+        }
+    }
+
     public class TareaBuscarConsolas extends TickerBehaviour {
 
         //Se buscarán agentes consola y operación
@@ -133,7 +213,7 @@ public class Laberinto extends Agent {
                 }
             } catch (FIPAException fe) {
                 fe.printStackTrace();
-            } 
+            }
         }
     }
 
