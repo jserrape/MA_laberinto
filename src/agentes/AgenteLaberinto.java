@@ -1,10 +1,11 @@
+//20000 milisegundos no son 2 segundos
+//Hay que hacer la transformacion de la x, para que corresponda a la del laberinto
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
 package agentes;
-
 
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
@@ -59,8 +60,7 @@ import util.ResultadoRaton;
  * @author jcsp0003
  */
 public class AgenteLaberinto extends Agent {
-    
-    
+
     //Variables del para la consola
     private AID[] agentesConsola;
     private AID[] agentesRaton = null;
@@ -70,6 +70,7 @@ public class AgenteLaberinto extends Agent {
     private GameUI laberinto;
     private int ancho = 10;
     private int alto = 10;
+    private Posicion posicionInicio;
 
     //Elementos de control de la partida
     private int numPartida;
@@ -86,7 +87,7 @@ public class AgenteLaberinto extends Agent {
     private Set<Subscription> suscripcionesJugadores;
 
     // Valores por defecto
-    private final long TIME_OUT = 20000; // 2seg
+    private final long TIME_OUT = 2000; // 2seg
 
     @Override
     protected void setup() {
@@ -236,11 +237,11 @@ public class AgenteLaberinto extends Agent {
                 Tablero tablero = new Tablero(alto, ancho);
                 int xInicio = (int) (Math.random() * alto);
                 int yInicio = (int) (Math.random() * ancho);
-                Posicion posicion = new Posicion(xInicio, yInicio);
+                posicionInicio = new Posicion(xInicio, yInicio);
                 int numCapturasQueso = OntologiaLaberinto.QUESOS;
                 int numTrampasActivas = OntologiaLaberinto.TRAMPAS_ACTIVAS;
                 long maximoJuegoSeg = 60;
-                Laberinto laberinto = new Laberinto(tablero, posicion, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
+                Laberinto laberinto = new Laberinto(tablero, posicionInicio, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
                 ProponerPartida propPartida = new ProponerPartida(partidaActual, laberinto);
 
                 ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
@@ -296,7 +297,7 @@ public class AgenteLaberinto extends Agent {
                     try {
                         partida = (PartidaAceptada) manager.extractContent(msg);
                         jugador = partida.getJugador();
-                        ratonesPartida.add(new ResultadoRaton(jugador.getAgenteJugador(),jugador.getNombre(), 0));
+                        ratonesPartida.add(new ResultadoRaton(jugador.getAgenteJugador(), jugador.getNombre(), 0));
                     } catch (Codec.CodecException | OntologyException ex) {
                         Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -305,10 +306,24 @@ public class AgenteLaberinto extends Agent {
                     rechazos = rechazos + "     El agente: " + msg.getSender().getLocalName() + " ha rechazado el juego\n";
                 }
             }
-            mensajesPendientes.add("Han aceptado "+ratonesPartida.size()+" ratones.");
-            mensajesPendientes.add("Han rechazado "+numRechazos+" ratones.");
-            if(numRechazos>0){
+            mensajesPendientes.add("Han aceptado " + ratonesPartida.size() + " ratones.");
+            mensajesPendientes.add("Han rechazado " + numRechazos + " ratones.");
+            if (numRechazos > 0) {
                 mensajesPendientes.add(rechazos);
+            }
+
+            //GENERO EL QUESO
+            try {
+                laberinto.nuevoQueso();
+            } catch (IOException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            //Genero los ratones
+            try {
+                laberinto.generarRatones(posicionInicio, ratonesPartida);
+            } catch (IOException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 

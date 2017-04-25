@@ -275,7 +275,6 @@ public class AgenteRaton extends Agent {
                     mensaje.addReceiver(agentesConsola[0]);
                     mensaje.setContent(mensajesPendientes.remove(0));
 
-                    // 
                     System.out.println("Enviado a: " + agentesConsola[0].getName());
                     System.out.println("Contenido: " + mensaje.getContent());
 
