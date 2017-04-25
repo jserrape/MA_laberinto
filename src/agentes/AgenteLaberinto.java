@@ -1,8 +1,3 @@
-//El laberinto no tiene tipo de partida
-//DetalleInforme -> predicado
-//tramspas activas=3
-//maximoJuegoSeg me lo invento
-//si uno no esta subscrito y le digo de jugar....
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -35,13 +30,16 @@ import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.proto.ProposeInitiator;
 import jade.proto.SubscriptionResponder;
 import jade.proto.SubscriptionResponder.Subscription;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import juegos.elementos.DetalleInforme;
@@ -74,6 +72,7 @@ public class AgenteLaberinto extends Agent {
     //Elementos de control de la partida
     private int numPartida;
     private Partida partidaActual;
+    private boolean partidaIniciada;
 
     //Variables para la ontologia
     private ContentManager manager = (ContentManager) getContentManager();
@@ -83,12 +82,16 @@ public class AgenteLaberinto extends Agent {
     //Control de subscripciones
     private Set<Subscription> suscripcionesJugadores;
 
+    // Valores por defecto
+    private final long TIME_OUT = 20000; // 2seg
+
     @Override
     protected void setup() {
         //Inicializar variables del agente
         mensajesPendientes = new ArrayList();
         suscripcionesJugadores = new HashSet();
         numPartida = 0;
+        partidaIniciada = false;
 
         //CREACION DE LA INTERFAZ DEL LABERINTO
         String argumentos;
@@ -139,6 +142,7 @@ public class AgenteLaberinto extends Agent {
         MessageTemplate plantilla = MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
 
         addBehaviour(new TareaInformarPartida(this, plantilla, gestorSuscripciones));
+        addBehaviour(new TareaNuevaPartida(this, 20000));
         addBehaviour(new TareaBuscarConsolas(this, 5000));
         addBehaviour(new TareaEnvioConsola(this, 500));
         mensajesPendientes.add("Inicializacion del laberinto acabada");
@@ -187,7 +191,6 @@ public class AgenteLaberinto extends Agent {
             agree.setPerformative(ACLMessage.AGREE);
 
             mensajesPendientes.add("Suscripción registrada al agente: " + Infpartida.getJugador().getNombre());
-            addBehaviour(new EnviarPosicionQueso());
             return agree;
         }
 
@@ -205,7 +208,7 @@ public class AgenteLaberinto extends Agent {
         }
     }
 
-    private class EnviarPosicionQueso extends OneShotBehaviour {
+    private class EnviarDetalleInforme extends OneShotBehaviour {
 
         @Override
         public void action() {
@@ -214,31 +217,79 @@ public class AgenteLaberinto extends Agent {
 
     }
 
-    public class TareaNuevaPartida extends OneShotBehaviour {
+    public class TareaNuevaPartida extends TickerBehaviour {
 
-        @Override
-        public void action() {
-            ++numPartida;
-            String idPartida = myAgent.getName() + "-" + numPartida;
-            Partida partida = new Partida(idPartida, "");
-            Tablero tablero = new Tablero(alto, ancho);
-            int xInicio = (int) (Math.random() * alto);
-            int yInicio = (int) (Math.random() * ancho);
-            Posicion posicion = new Posicion(xInicio, yInicio);
-            int numCapturasQueso = OntologiaLaberinto.QUESOS;
-            int numTrampasActivas = OntologiaLaberinto.TRAMPAS_ACTIVAS;
-            long maximoJuegoSeg = 60;
-            Laberinto laberinto = new Laberinto(tablero, posicion, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
-            ProponerPartida propPartida = new ProponerPartida(partida, laberinto);
-
-            ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
-            msg.setProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE);
-            msg.setSender(myAgent.getAID());
-            msg.setLanguage(codec.getName());
-            msg.setOntology(ontology.getName());
-            
+        public TareaNuevaPartida(Agent agente, long period) {
+            super(agente, period);
         }
 
+        @Override
+        protected void onTick() {
+            if (agentesRaton != null && !partidaIniciada) {
+                partidaIniciada = !partidaIniciada;
+                ++numPartida;
+                String idPartida = myAgent.getName() + "-" + numPartida;
+                Partida partida = new Partida(idPartida, "");
+                Tablero tablero = new Tablero(alto, ancho);
+                int xInicio = (int) (Math.random() * alto);
+                int yInicio = (int) (Math.random() * ancho);
+                Posicion posicion = new Posicion(xInicio, yInicio);
+                int numCapturasQueso = OntologiaLaberinto.QUESOS;
+                int numTrampasActivas = OntologiaLaberinto.TRAMPAS_ACTIVAS;
+                long maximoJuegoSeg = 60;
+                Laberinto laberinto = new Laberinto(tablero, posicion, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
+                ProponerPartida propPartida = new ProponerPartida(partida, laberinto);
+
+                ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
+                msg.setProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE);
+                msg.setSender(myAgent.getAID());
+                msg.setLanguage(codec.getName());
+                msg.setOntology(ontology.getName());
+                for (AID agentesRaton1 : agentesRaton) {
+                    msg.addReceiver(agentesRaton1);
+                }
+                msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
+
+                try {
+                    Action action = new Action(myAgent.getAID(), propPartida);
+                    manager.fillContent(msg, action);
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                // Creamos la tarea de ProponerPartida
+                addBehaviour(new TareaProponerPartida(myAgent, msg));
+                mensajesPendientes.add("Nueva Partida:\n"
+                        + "    -ID de la partida: " + idPartida + "\n"
+                        + "    -Posicion de inicio: " + xInicio + "-" + yInicio+"\n"
+                        + "    -Numero de capturas de queso: " + numCapturasQueso+"\n"
+                        + "    -Numero maximo de trampas: " + numTrampasActivas+"\n"
+                        + "    -Duracion maxima: " + maximoJuegoSeg);
+            }
+        }
+    }
+    
+    public class TareaProponerPartida extends ProposeInitiator {
+        
+        public TareaProponerPartida(Agent agente, ACLMessage msg) {
+            super(agente, msg);
+        }
+
+        @Override
+        protected void handleAllResponses(Vector responses) {
+        
+        }
+        
+        @Override
+        protected void handleAcceptProposal(ACLMessage aceptacion) {
+
+        }
+ 
+        @Override
+        protected void handleRejectProposal(ACLMessage rechazo) {
+
+        }
+        
     }
 
     public class TareaBuscarConsolas extends TickerBehaviour {
@@ -274,14 +325,14 @@ public class AgenteLaberinto extends Agent {
             } catch (FIPAException fe) {
                 fe.printStackTrace();
             }
-            
+
             template = new DFAgentDescription();
             sd = new ServiceDescription();
             sd.setName(OntologiaLaberinto.REGISTRO_RATON);
             template.addServices(sd);
-            
+
             try {
-                result = DFService.search(myAgent, template); 
+                result = DFService.search(myAgent, template);
                 if (result.length >= 1) {
                     System.out.println("Se han encontrado las siguientes agentes rata:");
                     agentesRaton = new AID[result.length];
@@ -289,15 +340,13 @@ public class AgenteLaberinto extends Agent {
                         agentesRaton[i] = result[i].getName();
                         System.out.println(agentesRaton[i].getName());
                     }
-                }
-                else {
+                } else {
                     System.out.println("No se han encontrado ratas");
                     agentesRaton = null;
                     //myGui.anularEnviar();
-                } 
-            }
-            catch (FIPAException fe) {
-		fe.printStackTrace();
+                }
+            } catch (FIPAException fe) {
+                fe.printStackTrace();
             }
         }
     }
