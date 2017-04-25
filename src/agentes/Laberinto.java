@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import juegos.elementos.DetalleInforme;
 import juegos.elementos.InformarPartida;
 import juegos.elementos.Jugador;
 import juegos.elementos.Partida;
@@ -158,12 +159,12 @@ public class Laberinto extends Agent {
 
         @Override
         protected ACLMessage handleSubscription(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
-            InformarPartida partida = null;
+            InformarPartida Infpartida = null;
 
             Action ac;
             try {
                 ac = (Action) manager.extractContent(subscription);
-                partida = (InformarPartida) ac.getAction();
+                Infpartida = (InformarPartida) ac.getAction();
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -176,7 +177,7 @@ public class Laberinto extends Agent {
             ACLMessage agree = subscription.createReply();
             agree.setPerformative(ACLMessage.AGREE);
 
-            mensajesPendientes.add("Suscripción registrada al agente: " + subscription.getSender().getLocalName() + " a la partida: " + partida.getPartida().getIdPartida());
+            mensajesPendientes.add("Suscripción registrada al agente: " + Infpartida.getJugador().getNombre());
             addBehaviour(new EnviarPosicionQueso());
             return agree;
         }
@@ -203,38 +204,6 @@ public class Laberinto extends Agent {
             Posicion posQ = new Posicion(5, 5);
             Jugador j = null;
             PosicionQueso pq = new PosicionQueso(p, posQ, j);
-
-            InformarPartida partidaFinalizada = null;
-            Iterator it;
-            Subscription suscripcion;
-            ACLMessage msg;
-
-            it = suscripcionesJugadores.iterator();
-            while (it.hasNext()) {
-                suscripcion = (Subscription) it.next();
-                msg = suscripcion.getMessage();
-
-                Action ac;
-                try {
-                    ac = (Action) manager.extractContent(msg);
-                    partidaFinalizada = (InformarPartida) ac.getAction();
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                ACLMessage msgPosQueso = new ACLMessage(ACLMessage.INFORM);
-                //msg.setSender(myAgent.getAID());
-                msgPosQueso.setLanguage(codec.getName());
-                msgPosQueso.setOntology(ontology.getName());
-                try {
-                    manager.fillContent(msgPosQueso, (AbsContentElement) pq); //<------------------------------------------------
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                suscripcion.notify(msgPosQueso);
-
-                mensajesPendientes.add("Envio INFORM al agente: \n" + msg.getSender().getLocalName());
-            }
         }
 
     }

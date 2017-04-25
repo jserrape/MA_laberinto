@@ -6,6 +6,7 @@
 package agentes;
 
 import jade.content.ContentManager;
+import jade.content.Predicate;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.BeanOntologyException;
@@ -25,7 +26,9 @@ import jade.proto.SubscriptionInitiator;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import juegos.elementos.DetalleInforme;
 import juegos.elementos.InformarPartida;
+import juegos.elementos.Jugador;
 import juegos.elementos.Partida;
 import laberinto.OntologiaLaberinto;
 
@@ -69,8 +72,9 @@ public class AgenteRaton extends Agent {
         }
 
         //Se crea un mensaje de tipo SUBSCRIBE y se asocia al protocolo FIPA-Subscribe.
-        Partida p = new Partida(this.getLocalName(), "Base");
-        InformarPartida inf = new InformarPartida(p);
+        //Partida p = new Partida(this.getLocalName(), "Base");
+        Jugador jugador = new Jugador(this.getLocalName(), this.getAID());
+        InformarPartida inf = new InformarPartida(jugador);
 
         ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
         mensaje.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
@@ -128,9 +132,8 @@ public class AgenteRaton extends Agent {
 
         //Maneja la informacion enviada: INFORM
         @Override
-        protected void handleInform(ACLMessage ganador) {
+        protected void handleInform(ACLMessage detalle) {
             mensajesPendientes.add("Me ha llegado algo por el subscribe");
-
         }
 
         //Maneja la respuesta en caso de fallo: FAILURE
