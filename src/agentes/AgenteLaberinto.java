@@ -5,9 +5,8 @@
  */
 package agentes;
 
-import jade.content.ContentElement;
+
 import jade.content.ContentManager;
-import jade.content.abs.AbsContentElement;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.BeanOntologyException;
@@ -60,7 +59,8 @@ import util.ResultadoRaton;
  * @author jcsp0003
  */
 public class AgenteLaberinto extends Agent {
-
+    
+    
     //Variables del para la consola
     private AID[] agentesConsola;
     private AID[] agentesRaton = null;
@@ -75,6 +75,7 @@ public class AgenteLaberinto extends Agent {
     private int numPartida;
     private Partida partidaActual;
     private boolean partidaIniciada;
+    private ArrayList<ResultadoRaton> ratonesPartida;
 
     //Variables para la ontologia
     private ContentManager manager = (ContentManager) getContentManager();
@@ -231,7 +232,7 @@ public class AgenteLaberinto extends Agent {
                 partidaIniciada = !partidaIniciada;
                 ++numPartida;
                 String idPartida = myAgent.getName() + "-" + numPartida;
-                Partida partida = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
+                partidaActual = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
                 Tablero tablero = new Tablero(alto, ancho);
                 int xInicio = (int) (Math.random() * alto);
                 int yInicio = (int) (Math.random() * ancho);
@@ -240,7 +241,7 @@ public class AgenteLaberinto extends Agent {
                 int numTrampasActivas = OntologiaLaberinto.TRAMPAS_ACTIVAS;
                 long maximoJuegoSeg = 60;
                 Laberinto laberinto = new Laberinto(tablero, posicion, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
-                ProponerPartida propPartida = new ProponerPartida(partida, laberinto);
+                ProponerPartida propPartida = new ProponerPartida(partidaActual, laberinto);
 
                 ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
                 msg.setProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE);
@@ -261,7 +262,7 @@ public class AgenteLaberinto extends Agent {
 
                 // Creamos la tarea de ProponerPartida
                 addBehaviour(new TareaProponerPartida(myAgent, msg));
-                
+
                 mensajesPendientes.add("Nueva Partida:\n"
                         + "    -ID de la partida: " + idPartida + "\n"
                         + "    -Posicion de inicio: " + xInicio + "-" + yInicio + "\n"
@@ -280,23 +281,45 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected void handleAllResponses(Vector responses) {
-            String rechazos = "Agentes que han rechazado\n";
+            String rechazos = "Agentes que han rechazado:\n";
             int numRechazos = 0;
-            ACLMessage msg = null;
-            PartidaAceptada partida = null;
-            ArrayList<ResultadoRaton> ratonesPartida = new ArrayList();
+            ACLMessage msg;
+            PartidaAceptada partida;
+            Jugador jugador;
+            ratonesPartida = new ArrayList();
             Iterator it = responses.iterator();
-            
+
+            // Recorremos todas las respuestas recibidas
+            while (it.hasNext()) {
+                msg = (ACLMessage) it.next();
+                if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+                    try {
+                        partida = (PartidaAceptada) manager.extractContent(msg);
+                        jugador = partida.getJugador();
+                        ratonesPartida.add(new ResultadoRaton(jugador.getAgenteJugador(),jugador.getNombre(), 0));
+                    } catch (Codec.CodecException | OntologyException ex) {
+                        Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    ++numRechazos;
+                    rechazos = rechazos + "     El agente: " + msg.getSender().getLocalName() + " ha rechazado el juego\n";
+                }
+            }
+            mensajesPendientes.add("Han aceptado "+ratonesPartida.size()+" ratones.");
+            mensajesPendientes.add("Han rechazado "+numRechazos+" ratones.");
+            if(numRechazos>0){
+                mensajesPendientes.add(rechazos);
+            }
         }
 
         @Override
         protected void handleAcceptProposal(ACLMessage aceptacion) {
-            mensajesPendientes.add("El agente " + aceptacion.getSender().getLocalName() + " ha ACEPTADO la proposicion");
+            mensajesPendientes.add("El agente " + aceptacion.getSender().getLocalName() + " ha ACEPTADO la proposicion de jugar");
         }
 
         @Override
         protected void handleRejectProposal(ACLMessage rechazo) {
-            mensajesPendientes.add("El agente " + rechazo.getSender().getLocalName() + " ha RECHAZADO la proposicion");
+            mensajesPendientes.add("El agente " + rechazo.getSender().getLocalName() + " ha RECHAZADO la proposicion de jugar");
         }
 
     }
