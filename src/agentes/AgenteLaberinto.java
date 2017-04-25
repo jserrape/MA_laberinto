@@ -53,6 +53,7 @@ import laberinto.OntologiaLaberinto;
 import laberinto.elementos.Laberinto;
 import laberinto.elementos.PosicionQueso;
 import laberinto.elementos.ProponerPartida;
+import util.ResultadoRaton;
 
 /**
  *
@@ -230,7 +231,7 @@ public class AgenteLaberinto extends Agent {
                 partidaIniciada = !partidaIniciada;
                 ++numPartida;
                 String idPartida = myAgent.getName() + "-" + numPartida;
-                Partida partida = new Partida(idPartida, "");
+                Partida partida = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
                 Tablero tablero = new Tablero(alto, ancho);
                 int xInicio = (int) (Math.random() * alto);
                 int yInicio = (int) (Math.random() * ancho);
@@ -260,6 +261,7 @@ public class AgenteLaberinto extends Agent {
 
                 // Creamos la tarea de ProponerPartida
                 addBehaviour(new TareaProponerPartida(myAgent, msg));
+                
                 mensajesPendientes.add("Nueva Partida:\n"
                         + "    -ID de la partida: " + idPartida + "\n"
                         + "    -Posicion de inicio: " + xInicio + "-" + yInicio + "\n"
@@ -282,8 +284,9 @@ public class AgenteLaberinto extends Agent {
             int numRechazos = 0;
             ACLMessage msg = null;
             PartidaAceptada partida = null;
-            //ArrayList<ResultadoJugador> jugadoresPartida = new ArrayList();
+            ArrayList<ResultadoRaton> ratonesPartida = new ArrayList();
             Iterator it = responses.iterator();
+            
         }
 
         @Override
