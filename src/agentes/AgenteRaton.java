@@ -64,7 +64,7 @@ public class AgenteRaton extends Agent {
         sd.addOntologies(OntologiaLaberinto.ONTOLOGY_NAME);
         //registro paginas amarillas
         try {
-            sd.setName(this.getLocalName());
+            sd.setName(OntologiaLaberinto.REGISTRO_RATON);
             sd.setType(OntologiaLaberinto.REGISTRO_RATON);
             dfd.addServices(sd);
             DFService.register(this, dfd);

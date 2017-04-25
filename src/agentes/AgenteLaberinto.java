@@ -1,7 +1,8 @@
 //El laberinto no tiene tipo de partida
-//Buscar por tipo
-//tramspas activas
+//DetalleInforme -> predicado
+//tramspas activas=3
 //maximoJuegoSeg me lo invento
+//si uno no esta subscrito y le digo de jugar....
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -62,6 +63,7 @@ public class AgenteLaberinto extends Agent {
 
     //Variables del para la consola
     private AID[] agentesConsola;
+    private AID[] agentesRaton = null;
     private ArrayList<String> mensajesPendientes;
 
     //Variables del laberinto
@@ -228,7 +230,12 @@ public class AgenteLaberinto extends Agent {
             long maximoJuegoSeg = 60;
             Laberinto laberinto = new Laberinto(tablero, posicion, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
             ProponerPartida propPartida = new ProponerPartida(partida, laberinto);
-            
+
+            ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
+            msg.setProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE);
+            msg.setSender(myAgent.getAID());
+            msg.setLanguage(codec.getName());
+            msg.setOntology(ontology.getName());
             
         }
 
@@ -266,6 +273,31 @@ public class AgenteLaberinto extends Agent {
                 }
             } catch (FIPAException fe) {
                 fe.printStackTrace();
+            }
+            
+            template = new DFAgentDescription();
+            sd = new ServiceDescription();
+            sd.setName(OntologiaLaberinto.REGISTRO_RATON);
+            template.addServices(sd);
+            
+            try {
+                result = DFService.search(myAgent, template); 
+                if (result.length >= 1) {
+                    System.out.println("Se han encontrado las siguientes agentes rata:");
+                    agentesRaton = new AID[result.length];
+                    for (int i = 0; i < result.length; ++i) {
+                        agentesRaton[i] = result[i].getName();
+                        System.out.println(agentesRaton[i].getName());
+                    }
+                }
+                else {
+                    System.out.println("No se han encontrado ratas");
+                    agentesRaton = null;
+                    //myGui.anularEnviar();
+                } 
+            }
+            catch (FIPAException fe) {
+		fe.printStackTrace();
             }
         }
     }
