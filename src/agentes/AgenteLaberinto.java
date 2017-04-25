@@ -1,3 +1,7 @@
+//El laberinto no tiene tipo de partida
+//Buscar por tipo
+//tramspas activas
+//maximoJuegoSeg me lo invento
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -44,14 +48,17 @@ import juegos.elementos.InformarPartida;
 import juegos.elementos.Jugador;
 import juegos.elementos.Partida;
 import juegos.elementos.Posicion;
+import juegos.elementos.Tablero;
 import laberinto.OntologiaLaberinto;
+import laberinto.elementos.Laberinto;
 import laberinto.elementos.PosicionQueso;
+import laberinto.elementos.ProponerPartida;
 
 /**
  *
  * @author jcsp0003
  */
-public class Laberinto extends Agent {
+public class AgenteLaberinto extends Agent {
 
     //Variables del para la consola
     private AID[] agentesConsola;
@@ -59,8 +66,8 @@ public class Laberinto extends Agent {
 
     //Variables del laberinto
     private GameUI laberinto;
-    private int width = 10;
-    private int height = 10;
+    private int ancho = 10;
+    private int alto = 10;
 
     //Elementos de control de la partida
     private int numPartida;
@@ -89,16 +96,16 @@ public class Laberinto extends Agent {
         String[] arg = argumentos.split(" ");
         if (arg.length >= 1) {
             if (!"".equals(arg[0])) {
-                width = Integer.parseInt(arg[0]);
+                ancho = Integer.parseInt(arg[0]);
             }
         }
         if (arg.length >= 2) {
-            height = Integer.parseInt(arg[1]);
+            alto = Integer.parseInt(arg[1]);
         }
         try {
-            laberinto = new GameUI(width, height);
+            laberinto = new GameUI(ancho, alto);
         } catch (IOException | InterruptedException ex) {
-            Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
         }
         laberinto.setVisible(true);
 
@@ -106,7 +113,7 @@ public class Laberinto extends Agent {
         try {
             ontology = OntologiaLaberinto.getInstance();
         } catch (BeanOntologyException ex) {
-            Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
         }
         manager.registerLanguage(codec);
         manager.registerOntology(ontology);
@@ -166,7 +173,7 @@ public class Laberinto extends Agent {
                 ac = (Action) manager.extractContent(subscription);
                 Infpartida = (InformarPartida) ac.getAction();
             } catch (Codec.CodecException | OntologyException ex) {
-                Logger.getLogger(Laberinto.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             // Registra la suscripción del Jugador
@@ -200,10 +207,29 @@ public class Laberinto extends Agent {
 
         @Override
         public void action() {
-            Partida p = new Partida(this.myAgent.getLocalName() + "-" + numPartida, "Juego"); //Cambiar por la partida actual
-            Posicion posQ = new Posicion(5, 5);
-            Jugador j = null;
-            PosicionQueso pq = new PosicionQueso(p, posQ, j);
+
+        }
+
+    }
+
+    public class TareaNuevaPartida extends OneShotBehaviour {
+
+        @Override
+        public void action() {
+            ++numPartida;
+            String idPartida = myAgent.getName() + "-" + numPartida;
+            Partida partida = new Partida(idPartida, "");
+            Tablero tablero = new Tablero(alto, ancho);
+            int xInicio = (int) (Math.random() * alto);
+            int yInicio = (int) (Math.random() * ancho);
+            Posicion posicion = new Posicion(xInicio, yInicio);
+            int numCapturasQueso = OntologiaLaberinto.QUESOS;
+            int numTrampasActivas = OntologiaLaberinto.TRAMPAS_ACTIVAS;
+            long maximoJuegoSeg = 60;
+            Laberinto laberinto = new Laberinto(tablero, posicion, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
+            ProponerPartida propPartida = new ProponerPartida(partida, laberinto);
+            
+            
         }
 
     }
