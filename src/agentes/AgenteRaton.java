@@ -18,10 +18,13 @@ import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.proto.ProposeResponder;
 import jade.proto.SubscriptionInitiator;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -30,7 +33,10 @@ import juegos.elementos.DetalleInforme;
 import juegos.elementos.InformarPartida;
 import juegos.elementos.Jugador;
 import juegos.elementos.Partida;
+import juegos.elementos.PartidaAceptada;
 import laberinto.OntologiaLaberinto;
+import laberinto.elementos.Laberinto;
+import laberinto.elementos.ProponerPartida;
 
 /**
  *
@@ -47,9 +53,13 @@ public class AgenteRaton extends Agent {
     private Ontology ontologia;
     private ContentManager manager = (ContentManager) getContentManager();
 
+    //Atributos para control del juego
+    private boolean jugando;
+
     @Override
     protected void setup() {
         mensajesPendientes = new ArrayList();
+        jugando = false;
 
         DFAgentDescription dfd = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
@@ -97,19 +107,19 @@ public class AgenteRaton extends Agent {
         //ME REGISTRO AL SUBSCRIBE
         addBehaviour(new InformarPartidaSubscribe(this, mensaje));
 
+        //BUSCO LA CONSULA Y LE MANDO LOS MENSAJES
         addBehaviour(new TareaBuscarConsolas(this, 5000));
         addBehaviour(new TareaEnvioConsola(this, 500));
+
+        //LEO LAS PROPOSICIONES DE PARTIDA
+        MessageTemplate plantilla = ProposeResponder.createMessageTemplate(FIPANames.InteractionProtocol.FIPA_PROPOSE);
+        addBehaviour(new ResponderProposicionPartida(this, plantilla));
         mensajesPendientes.add("Inicializacion del raton " + this.getLocalName() + " acabada.");
     }
 
     @Override
     protected void takeDown() {
-        //Desregristo del agente de las Páginas Amarillas
-
-        //Liberación de recursos, incluido el GUI
-        //Despedida
         System.out.println("Finaliza la ejecución del agente: " + this.getName());
-
     }
 
     private class InformarPartidaSubscribe extends SubscriptionInitiator {
@@ -144,6 +154,71 @@ public class AgenteRaton extends Agent {
 
         @Override
         public void cancellationCompleted(AID agente) {
+        }
+    }
+
+    private class ResponderProposicionPartida extends ProposeResponder {
+
+        public ResponderProposicionPartida(Agent agente, MessageTemplate plantilla) {
+            super(agente, plantilla);
+        }
+
+        @Override
+        protected ACLMessage prepareResponse(ACLMessage propuesta) throws NotUnderstoodException {
+            if (!jugando) {
+                jugando = !jugando;
+                ProponerPartida proposicionPartida = null;
+                Action ac;
+
+                try {
+                    ac = (Action) manager.extractContent(propuesta);
+                    proposicionPartida = (ProponerPartida) ac.getAction();
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                //AQUI TENGO EL TABLERO LA INFO DE LA PARTIDA
+                Partida partida = proposicionPartida.getPartida();
+                Laberinto tablerto = proposicionPartida.getLaberinto();
+
+                Jugador j = new Jugador(this.myAgent.getName(), this.myAgent.getAID());
+                PartidaAceptada pa = new PartidaAceptada(partida, j);
+
+                ACLMessage agree = propuesta.createReply();
+                agree.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+                agree.setLanguage(codec.getName());
+                agree.setOntology(ontologia.getName());
+
+                try {
+                    manager.fillContent(agree, pa);
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida());
+
+                return agree;
+            } else {
+                ProponerPartida proposicionPartida = null;
+                Action ac;
+
+                try {
+                    ac = (Action) manager.extractContent(propuesta);
+                    proposicionPartida = (ProponerPartida) ac.getAction();
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                Partida partida = proposicionPartida.getPartida();
+                mensajesPendientes.add("RECHAZO una proposicion de partida con id " + partida.getIdPartida());
+
+                ACLMessage desagree = propuesta.createReply();
+                desagree.setPerformative(ACLMessage.REJECT_PROPOSAL);
+                desagree.setLanguage(codec.getName());
+                desagree.setOntology(ontologia.getName());
+
+                return desagree;
+            }
         }
     }
 

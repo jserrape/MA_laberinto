@@ -46,6 +46,7 @@ import juegos.elementos.DetalleInforme;
 import juegos.elementos.InformarPartida;
 import juegos.elementos.Jugador;
 import juegos.elementos.Partida;
+import juegos.elementos.PartidaAceptada;
 import juegos.elementos.Posicion;
 import juegos.elementos.Tablero;
 import laberinto.OntologiaLaberinto;
@@ -261,35 +262,40 @@ public class AgenteLaberinto extends Agent {
                 addBehaviour(new TareaProponerPartida(myAgent, msg));
                 mensajesPendientes.add("Nueva Partida:\n"
                         + "    -ID de la partida: " + idPartida + "\n"
-                        + "    -Posicion de inicio: " + xInicio + "-" + yInicio+"\n"
-                        + "    -Numero de capturas de queso: " + numCapturasQueso+"\n"
-                        + "    -Numero maximo de trampas: " + numTrampasActivas+"\n"
+                        + "    -Posicion de inicio: " + xInicio + "-" + yInicio + "\n"
+                        + "    -Numero de capturas de queso: " + numCapturasQueso + "\n"
+                        + "    -Numero maximo de trampas: " + numTrampasActivas + "\n"
                         + "    -Duracion maxima: " + maximoJuegoSeg);
             }
         }
     }
-    
+
     public class TareaProponerPartida extends ProposeInitiator {
-        
+
         public TareaProponerPartida(Agent agente, ACLMessage msg) {
             super(agente, msg);
         }
 
         @Override
         protected void handleAllResponses(Vector responses) {
-        
+            String rechazos = "Agentes que han rechazado\n";
+            int numRechazos = 0;
+            ACLMessage msg = null;
+            PartidaAceptada partida = null;
+            //ArrayList<ResultadoJugador> jugadoresPartida = new ArrayList();
+            Iterator it = responses.iterator();
         }
-        
+
         @Override
         protected void handleAcceptProposal(ACLMessage aceptacion) {
-
+            mensajesPendientes.add("El agente " + aceptacion.getSender().getLocalName() + " ha ACEPTADO la proposicion");
         }
- 
+
         @Override
         protected void handleRejectProposal(ACLMessage rechazo) {
-
+            mensajesPendientes.add("El agente " + rechazo.getSender().getLocalName() + " ha RECHAZADO la proposicion");
         }
-        
+
     }
 
     public class TareaBuscarConsolas extends TickerBehaviour {
