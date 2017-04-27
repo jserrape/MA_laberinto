@@ -31,6 +31,7 @@ import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.proto.ContractNetInitiator;
 import jade.proto.ProposeInitiator;
 import jade.proto.SubscriptionResponder;
 import jade.proto.SubscriptionResponder.Subscription;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -275,7 +277,7 @@ public class AgenteLaberinto extends Agent {
             String rechazos = "Agentes que han rechazado:\n";
             int numRechazos = 0;
             ACLMessage msg;
-            PartidaAceptada partida;
+            PartidaAceptada partida = null;
             Jugador jugador;
             ratonesPartida = new ArrayList();
             Iterator it = responses.iterator();
@@ -315,6 +317,8 @@ public class AgenteLaberinto extends Agent {
             } catch (IOException ex) {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
+            
+            myAgent.addBehaviour(new TareaInicioRonda(partida.getPartida().getIdPartida()));
         }
 
         @Override
@@ -327,6 +331,59 @@ public class AgenteLaberinto extends Agent {
             mensajesPendientes.add("El agente " + rechazo.getSender().getLocalName() + " ha RECHAZADO la proposicion de jugar");
         }
 
+    }
+
+    class TareaInicioRonda extends OneShotBehaviour {
+
+        private final String idPartida;
+        private final Partida partida;
+
+        public TareaInicioRonda(String idPartida) {
+            this.idPartida = idPartida;
+            this.partida = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
+        }
+
+        @Override
+        public void action() {
+            //ratonesPartida
+            ACLMessage msg = new ACLMessage(ACLMessage.CFP);
+            msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
+            msg.setSender(getAID());
+            msg.setLanguage(codec.getName());
+            msg.setOntology(ontology.getName());
+
+            for (int i = 0; i < ratonesPartida.size(); i++) {
+                msg.addReceiver(ratonesPartida.get(i).getAidRaton());
+            }
+            msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
+
+            Action ac = new Action(this.myAgent.getAID(), partida);
+
+            try {
+                manager.fillContent(msg, ac);
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            String mensaj = "Se ha pedido una jugada a los agentes:\n";
+            for (int i = 0; i < ratonesPartida.size(); i++) {
+                mensaj += "   " + ratonesPartida.get(i).getNombre() + "\n";
+            }
+            mensajesPendientes.add(mensaj);
+            addBehaviour(new TareaJugarPartida(this.myAgent, msg));
+        }
+    }
+
+    class TareaJugarPartida extends ContractNetInitiator {
+
+        public TareaJugarPartida(Agent a, ACLMessage cfp) {
+            super(a, cfp);
+        }
+
+        @Override
+        protected void handleAllResponses(Vector responses, Vector acceptances) {
+
+        }
     }
 
     public class TareaBuscarAgentes extends TickerBehaviour {

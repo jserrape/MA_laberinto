@@ -15,6 +15,7 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -27,6 +28,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.proto.ProposeResponder;
 import jade.proto.SubscriptionInitiator;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import juegos.elementos.DetalleInforme;
@@ -37,6 +39,7 @@ import juegos.elementos.PartidaAceptada;
 import laberinto.OntologiaLaberinto;
 import laberinto.elementos.Laberinto;
 import laberinto.elementos.ProponerPartida;
+import util.ResultadoRaton;
 
 /**
  *
@@ -44,6 +47,10 @@ import laberinto.elementos.ProponerPartida;
  *
  */
 public class AgenteRaton extends Agent {
+
+    //Elementos de la partida
+    Partida partida;
+    Laberinto tablerto;
 
     private AID[] agentesConsola;
     private ArrayList<String> mensajesPendientes;
@@ -177,9 +184,9 @@ public class AgenteRaton extends Agent {
                     Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                //AQUI TENGO EL TABLERO LA INFO DE LA PARTIDA
-                Partida partida = proposicionPartida.getPartida();
-                Laberinto tablerto = proposicionPartida.getLaberinto();
+                //AQUI TENGO EL TABLERO y LA INFO DE LA PARTIDA
+                partida = proposicionPartida.getPartida();
+                tablerto = proposicionPartida.getLaberinto();
 
                 Jugador j = new Jugador(this.myAgent.getName(), this.myAgent.getAID());
                 PartidaAceptada pa = new PartidaAceptada(partida, j);
@@ -221,6 +228,8 @@ public class AgenteRaton extends Agent {
             }
         }
     }
+
+
 
     public class TareaBuscarConsolas extends TickerBehaviour {
 

@@ -6,6 +6,7 @@
 package util;
 
 import jade.core.AID;
+import juegos.elementos.Posicion;
 
 /**
  *
@@ -15,12 +16,14 @@ public class ResultadoRaton {
 
     private final AID aidRaton;
     private final String nombre;
+    private Posicion pos;
     private int quesos;
 
     public ResultadoRaton(AID aidRaton, String nombre, int quesos) {
         this.aidRaton = aidRaton;
         this.nombre = nombre;
         this.quesos = quesos;
+        this.pos = new Posicion(0, 0);
     }
 
     @Override
