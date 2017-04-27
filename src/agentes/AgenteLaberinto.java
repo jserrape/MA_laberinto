@@ -152,14 +152,14 @@ public class AgenteLaberinto extends Agent {
     }
 
     public void empezarSistema(int t, int mq, int mt, int alt, int anc) throws IOException, InterruptedException {
-        this.alto=alt;
-        this.ancho=anc;
-        this.tiempo=t;
-        this.quesosMax=mq;
-        this.maxTrampas=mt;
+        this.alto = alt;
+        this.ancho = anc;
+        this.tiempo = t;
+        this.quesosMax = mq;
+        this.maxTrampas = mt;
         laberinto = new GameUI(ancho, alto);
         laberinto.setVisible(true);
-        addBehaviour(new TareaNuevaPartida(this, 20000));
+        addBehaviour(new TareaNuevaPartida());
     }
 
     public class TareaInformarPartida extends SubscriptionResponder {
@@ -217,56 +217,50 @@ public class AgenteLaberinto extends Agent {
 
     }
 
-    public class TareaNuevaPartida extends TickerBehaviour {
-
-        public TareaNuevaPartida(Agent agente, long period) {
-            super(agente, period);
-        }
+    public class TareaNuevaPartida extends OneShotBehaviour {
 
         @Override
-        protected void onTick() {
-            if (agentesRaton != null && !partidaIniciada) {
-                partidaIniciada = !partidaIniciada;
-                ++numPartida;
-                String idPartida = myAgent.getName() + "-" + numPartida;
-                partidaActual = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
-                Tablero tablero = new Tablero(alto, ancho);
-                int xInicio = 0;
-                int yInicio = 0;
-                posicionInicio = new Posicion(xInicio, yInicio);
-                int numCapturasQueso = OntologiaLaberinto.QUESOS;
-                int numTrampasActivas = OntologiaLaberinto.TRAMPAS_ACTIVAS;
-                long maximoJuegoSeg = 60;
-                Laberinto laberinto = new Laberinto(tablero, posicionInicio, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
-                ProponerPartida propPartida = new ProponerPartida(partidaActual, laberinto);
+        public void action() {
+            partidaIniciada = !partidaIniciada;
+            ++numPartida;
+            String idPartida = myAgent.getName() + "-" + numPartida;
+            partidaActual = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
+            Tablero tablero = new Tablero(alto, ancho);
+            int xInicio = 0;
+            int yInicio = 0;
+            posicionInicio = new Posicion(xInicio, yInicio);
+            int numCapturasQueso = OntologiaLaberinto.QUESOS;
+            int numTrampasActivas = OntologiaLaberinto.TRAMPAS_ACTIVAS;
+            long maximoJuegoSeg = 60;
+            Laberinto laberinto = new Laberinto(tablero, posicionInicio, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
+            ProponerPartida propPartida = new ProponerPartida(partidaActual, laberinto);
 
-                ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
-                msg.setProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE);
-                msg.setSender(myAgent.getAID());
-                msg.setLanguage(codec.getName());
-                msg.setOntology(ontology.getName());
-                for (AID agentesRaton1 : agentesRaton) {
-                    msg.addReceiver(agentesRaton1);
-                }
-                msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
-
-                try {
-                    Action action = new Action(myAgent.getAID(), propPartida);
-                    manager.fillContent(msg, action);
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                // Creamos la tarea de ProponerPartida
-                addBehaviour(new TareaProponerPartida(myAgent, msg));
-
-                mensajesPendientes.add("Nueva Partida:\n"
-                        + "    -ID de la partida: " + idPartida + "\n"
-                        + "    -Posicion de inicio: " + xInicio + "-" + yInicio + "\n"
-                        + "    -Numero de capturas de queso: " + numCapturasQueso + "\n"
-                        + "    -Numero maximo de trampas: " + numTrampasActivas + "\n"
-                        + "    -Duracion maxima: " + maximoJuegoSeg);
+            ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
+            msg.setProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE);
+            msg.setSender(myAgent.getAID());
+            msg.setLanguage(codec.getName());
+            msg.setOntology(ontology.getName());
+            for (AID agentesRaton1 : agentesRaton) {
+                msg.addReceiver(agentesRaton1);
             }
+            msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
+
+            try {
+                Action action = new Action(myAgent.getAID(), propPartida);
+                manager.fillContent(msg, action);
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            // Creamos la tarea de ProponerPartida
+            addBehaviour(new TareaProponerPartida(myAgent, msg));
+
+            mensajesPendientes.add("Nueva Partida:\n"
+                    + "    -ID de la partida: " + idPartida + "\n"
+                    + "    -Posicion de inicio: " + xInicio + "-" + yInicio + "\n"
+                    + "    -Numero de capturas de queso: " + numCapturasQueso + "\n"
+                    + "    -Numero maximo de trampas: " + numTrampasActivas + "\n"
+                    + "    -Duracion maxima: " + maximoJuegoSeg);
         }
     }
 
