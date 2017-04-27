@@ -19,12 +19,15 @@ import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.FailureException;
 import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.proto.ContractNetResponder;
 import jade.proto.ProposeResponder;
 import jade.proto.SubscriptionInitiator;
 import java.util.ArrayList;
@@ -36,7 +39,10 @@ import juegos.elementos.InformarPartida;
 import juegos.elementos.Jugador;
 import juegos.elementos.Partida;
 import juegos.elementos.PartidaAceptada;
+import juegos.elementos.Posicion;
 import laberinto.OntologiaLaberinto;
+import laberinto.elementos.Jugada;
+import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.Laberinto;
 import laberinto.elementos.ProponerPartida;
 import util.ResultadoRaton;
@@ -48,9 +54,12 @@ import util.ResultadoRaton;
  */
 public class AgenteRaton extends Agent {
 
+    private Jugador jugador;
+
     //Elementos de la partida
-    Partida partida;
-    Laberinto tablerto;
+    private Partida partida;
+    private Laberinto tablero;
+    private Posicion posicion;
 
     private AID[] agentesConsola;
     private ArrayList<String> mensajesPendientes;
@@ -106,6 +115,9 @@ public class AgenteRaton extends Agent {
             Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        //creo el objeto jugador
+        jugador = new Jugador(this.getName(), this.getAID());
+
         //Se añade el destinatario del mensaje
         AID id = new AID();
         id.setLocalName(OntologiaLaberinto.REGISTRO_LABERINTO);
@@ -122,6 +134,10 @@ public class AgenteRaton extends Agent {
         MessageTemplate plantilla = ProposeResponder.createMessageTemplate(FIPANames.InteractionProtocol.FIPA_PROPOSE);
         addBehaviour(new ResponderProposicionPartida(this, plantilla));
         mensajesPendientes.add("Inicializacion del raton " + this.getLocalName() + " acabada.");
+
+        //Leo las rondas
+        MessageTemplate template = ContractNetResponder.createMessageTemplate(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
+        addBehaviour(new TareaJugarPartida(this, template));
     }
 
     @Override
@@ -186,7 +202,8 @@ public class AgenteRaton extends Agent {
 
                 //AQUI TENGO EL TABLERO y LA INFO DE LA PARTIDA
                 partida = proposicionPartida.getPartida();
-                tablerto = proposicionPartida.getLaberinto();
+                tablero = proposicionPartida.getLaberinto();
+                posicion = tablero.getPosicionInicio();
 
                 Jugador j = new Jugador(this.myAgent.getName(), this.myAgent.getAID());
                 PartidaAceptada pa = new PartidaAceptada(partida, j);
@@ -229,7 +246,54 @@ public class AgenteRaton extends Agent {
         }
     }
 
+    private class TareaJugarPartida extends ContractNetResponder {
 
+        public TareaJugarPartida(Agent agente, MessageTemplate plantilla) {
+            super(agente, plantilla);
+        }
+
+        @Override
+        protected ACLMessage prepareResponse(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
+            Action ac;
+            Partida p = null;
+            try {
+                ac = (Action) manager.extractContent(cfp);
+                p = (Partida) ac.getAction();
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            mensajesPendientes.add("Me ha llegado una peticion de ronda para la partida con id=" + p.getIdPartida());
+
+            //////////////////
+            /////////////////   AQUI DECIDO EL MOVIMIENTO QUE VOY A HACER
+            ////////////////
+            
+            Jugada jugada = new Jugada("1", posicion);
+            JugadaEntregada jugEntregada = new JugadaEntregada(p, jugador, jugada);
+
+            ACLMessage respuesta = cfp.createReply();
+            respuesta.setPerformative(ACLMessage.PROPOSE);
+            respuesta.setSender(myAgent.getAID());
+            respuesta.setLanguage(codec.getName());
+            respuesta.setOntology(ontologia.getName());
+            
+            
+            //< CONTINUAR AQUI >
+            
+            
+            return null;
+        }
+
+        @Override
+        protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
+            return null;
+        }
+
+        @Override
+        protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
+
+        }
+    }
 
     public class TareaBuscarConsolas extends TickerBehaviour {
 

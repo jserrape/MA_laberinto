@@ -382,7 +382,7 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected void handleAllResponses(Vector responses, Vector acceptances) {
-
+            
         }
     }
 
