@@ -37,7 +37,6 @@ public class MensajeConsola {
 
     @Override
     public String toString() {
-        return "Mensaje enviado por: " + nombreAgente + 
-                "\nContenido: " + contenido + "\n";
+        return "Contenido: \n" + contenido + "\n";
     }
 }
