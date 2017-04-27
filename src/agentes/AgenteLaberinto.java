@@ -7,6 +7,7 @@
  */
 package agentes;
 
+import GUI.LaberintoJFrame;
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
@@ -67,9 +68,13 @@ public class AgenteLaberinto extends Agent {
     private ArrayList<String> mensajesPendientes;
 
     //Variables del laberinto
+    private LaberintoJFrame myGUI;
     private GameUI laberinto;
-    private int ancho = 10;
-    private int alto = 10;
+    public int ancho = 10;
+    public int alto = 10;
+    public int tiempo = 120000;
+    public int quesosMax = 5;
+    public int maxTrampas = 3;
     private Posicion posicionInicio;
 
     //Elementos de control de la partida
@@ -92,31 +97,12 @@ public class AgenteLaberinto extends Agent {
     @Override
     protected void setup() {
         //Inicializar variables del agente
+        myGUI = new LaberintoJFrame(this);
+        myGUI.setVisible(true);
         mensajesPendientes = new ArrayList();
         suscripcionesJugadores = new HashSet();
         numPartida = 0;
         partidaIniciada = false;
-
-        //CREACION DE LA INTERFAZ DEL LABERINTO
-        String argumentos;
-        argumentos = Arrays.toString(this.getArguments());
-        argumentos = argumentos.replace("[", "");
-        argumentos = argumentos.replace("]", "");
-        String[] arg = argumentos.split(" ");
-        if (arg.length >= 1) {
-            if (!"".equals(arg[0])) {
-                ancho = Integer.parseInt(arg[0]);
-            }
-        }
-        if (arg.length >= 2) {
-            alto = Integer.parseInt(arg[1]);
-        }
-        try {
-            laberinto = new GameUI(ancho, alto);
-        } catch (IOException | InterruptedException ex) {
-            Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        laberinto.setVisible(true);
 
         //REGISTRO DE LA ONTOLOGIA
         try {
@@ -146,8 +132,7 @@ public class AgenteLaberinto extends Agent {
         MessageTemplate plantilla = MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
 
         addBehaviour(new TareaInformarPartida(this, plantilla, gestorSuscripciones));
-        addBehaviour(new TareaNuevaPartida(this, 20000));
-        addBehaviour(new TareaBuscarConsolas(this, 5000));
+        addBehaviour(new TareaBuscarAgentes(this, 5000));
         addBehaviour(new TareaEnvioConsola(this, 500));
         mensajesPendientes.add("Inicializacion del laberinto acabada");
     }
@@ -164,6 +149,17 @@ public class AgenteLaberinto extends Agent {
 
         //Despedida
         System.out.println("Finaliza la ejecución del agente: " + this.getName());
+    }
+
+    public void empezarSistema(int t, int mq, int mt, int alt, int anc) throws IOException, InterruptedException {
+        this.alto=alt;
+        this.ancho=anc;
+        this.tiempo=t;
+        this.quesosMax=mq;
+        this.maxTrampas=mt;
+        laberinto = new GameUI(ancho, alto);
+        laberinto.setVisible(true);
+        addBehaviour(new TareaNuevaPartida(this, 20000));
     }
 
     public class TareaInformarPartida extends SubscriptionResponder {
@@ -235,8 +231,8 @@ public class AgenteLaberinto extends Agent {
                 String idPartida = myAgent.getName() + "-" + numPartida;
                 partidaActual = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
                 Tablero tablero = new Tablero(alto, ancho);
-                int xInicio = (int) (Math.random() * alto);
-                int yInicio = (int) (Math.random() * ancho);
+                int xInicio = 0;
+                int yInicio = 0;
                 posicionInicio = new Posicion(xInicio, yInicio);
                 int numCapturasQueso = OntologiaLaberinto.QUESOS;
                 int numTrampasActivas = OntologiaLaberinto.TRAMPAS_ACTIVAS;
@@ -339,10 +335,10 @@ public class AgenteLaberinto extends Agent {
 
     }
 
-    public class TareaBuscarConsolas extends TickerBehaviour {
+    public class TareaBuscarAgentes extends TickerBehaviour {
 
         //Se buscarán agentes consola y operación
-        public TareaBuscarConsolas(Agent a, long period) {
+        public TareaBuscarAgentes(Agent a, long period) {
             super(a, period);
         }
 
@@ -380,7 +376,9 @@ public class AgenteLaberinto extends Agent {
 
             try {
                 result = DFService.search(myAgent, template);
+                myGUI.setNumeroRatas(String.valueOf(result.length));
                 if (result.length >= 1) {
+                    myGUI.activarBoton();
                     System.out.println("Se han encontrado las siguientes agentes rata:");
                     agentesRaton = new AID[result.length];
                     for (int i = 0; i < result.length; ++i) {
@@ -388,9 +386,9 @@ public class AgenteLaberinto extends Agent {
                         System.out.println(agentesRaton[i].getName());
                     }
                 } else {
+                    myGUI.desactivarBoton();
                     System.out.println("No se han encontrado ratas");
                     agentesRaton = null;
-                    //myGui.anularEnviar();
                 }
             } catch (FIPAException fe) {
                 fe.printStackTrace();
