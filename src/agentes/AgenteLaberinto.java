@@ -229,9 +229,9 @@ public class AgenteLaberinto extends Agent {
             int xInicio = 0;
             int yInicio = 0;
             posicionInicio = new Posicion(xInicio, yInicio);
-            int numCapturasQueso = OntologiaLaberinto.QUESOS;
-            int numTrampasActivas = OntologiaLaberinto.TRAMPAS_ACTIVAS;
-            long maximoJuegoSeg = 60;
+            int numCapturasQueso = quesosMax;
+            int numTrampasActivas = maxTrampas;
+            long maximoJuegoSeg = tiempo;
             Laberinto laberinto = new Laberinto(tablero, posicionInicio, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
             ProponerPartida propPartida = new ProponerPartida(partidaActual, laberinto);
 
