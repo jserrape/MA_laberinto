@@ -53,6 +53,7 @@ import juegos.elementos.PartidaAceptada;
 import juegos.elementos.Posicion;
 import juegos.elementos.Tablero;
 import laberinto.OntologiaLaberinto;
+import laberinto.elementos.EntornoLaberinto;
 import laberinto.elementos.Laberinto;
 import laberinto.elementos.PosicionQueso;
 import laberinto.elementos.ProponerPartida;
@@ -71,7 +72,7 @@ public class AgenteLaberinto extends Agent {
 
     //Variables del laberinto
     private LaberintoJFrame myGUI;
-    private GameUI laberinto;
+    private GameUI laberintoGUI;
     public int ancho = 10;
     public int alto = 10;
     public int tiempo = 120000;
@@ -159,8 +160,8 @@ public class AgenteLaberinto extends Agent {
         this.tiempo = t;
         this.quesosMax = mq;
         this.maxTrampas = mt;
-        laberinto = new GameUI(ancho, alto);
-        laberinto.setVisible(true);
+        laberintoGUI = new GameUI(ancho, alto);
+        laberintoGUI.setVisible(true);
         addBehaviour(new TareaNuevaPartida());
     }
 
@@ -234,7 +235,8 @@ public class AgenteLaberinto extends Agent {
             int numCapturasQueso = quesosMax;
             int numTrampasActivas = maxTrampas;
             long maximoJuegoSeg = tiempo;
-            Laberinto laberinto = new Laberinto(tablero, posicionInicio, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
+            EntornoLaberinto entInicio = laberintoGUI.getEntorno(0, 0);
+            Laberinto laberinto = new Laberinto(tablero, posicionInicio, entInicio, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
             ProponerPartida propPartida = new ProponerPartida(partidaActual, laberinto);
 
             ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
@@ -306,18 +308,18 @@ public class AgenteLaberinto extends Agent {
 
             //GENERO EL QUESO
             try {
-                laberinto.nuevoQueso();
+                laberintoGUI.nuevoQueso();
             } catch (IOException ex) {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             //Genero los ratones
             try {
-                laberinto.generarRatones(posicionInicio, ratonesPartida);
+                laberintoGUI.generarRatones(posicionInicio, ratonesPartida);
             } catch (IOException ex) {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
             myAgent.addBehaviour(new TareaInicioRonda(partida.getPartida().getIdPartida()));
         }
 
@@ -382,7 +384,7 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected void handleAllResponses(Vector responses, Vector acceptances) {
-            
+
         }
     }
 

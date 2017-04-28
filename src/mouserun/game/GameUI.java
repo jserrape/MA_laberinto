@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import juegos.elementos.Posicion;
+import laberinto.elementos.EntornoLaberinto;
 import util.ResultadoRaton;
 
 /**
@@ -84,32 +85,18 @@ public class GameUI extends JFrame {
                 container.add(panel);
             }
         }
+
     }
 
-    /**
-     * Busca los agentes Raton, los mete en el juego, y genera un queso
-     *
-     * @throws IOException can occur if the required game assets are missing.
-     */
-    public void iniciarQuesoYRatas() throws IOException {
-        //Busco las ratas, las almaceno en un arraylist y las meto al contenedor
-        maze.getGrid(0, 0).puedo();
-
-        Rata rata = new Rata("Nombre", 1, 0);
-        arrayRatas.add(rata);
-
-        container.add(rata.getPanel());
-        container.moveToFront(rata.getPanel());
-
-        quesito = new Queso(5, 0);
-        container.add(quesito.getPanel());
-        container.moveToFront(quesito.getPanel());
+    public EntornoLaberinto getEntorno(int x, int y) {
+        return maze.getGrid(x, y).getEntorno();
     }
+
 
     public void nuevoQueso() throws IOException {
         int x = (int) (Math.random() * alto);
         int y = (int) (Math.random() * ancho);
-        quesito = new Queso(x, y);
+        quesito = new Queso(x, alto-1-y);
         container.add(quesito.getPanel());
         container.moveToFront(quesito.getPanel());
     }
@@ -117,7 +104,7 @@ public class GameUI extends JFrame {
     public void generarRatones(Posicion posicionInicio, ArrayList<ResultadoRaton> ratonesPartida) throws IOException {
         Rata rata;
         for (int i = 0; i < ratonesPartida.size(); i++) {
-            rata = new Rata(ratonesPartida.get(i).getNombre(), posicionInicio.getCoorX(), posicionInicio.getCoorY());
+            rata = new Rata(ratonesPartida.get(i).getNombre(), posicionInicio.getCoorX(), alto-1-posicionInicio.getCoorY());
             container.add(rata.getPanel());
             container.moveToFront(rata.getPanel());
             container.add(rata.getJLabel());

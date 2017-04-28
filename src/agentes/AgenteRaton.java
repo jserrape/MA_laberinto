@@ -41,6 +41,7 @@ import juegos.elementos.Partida;
 import juegos.elementos.PartidaAceptada;
 import juegos.elementos.Posicion;
 import laberinto.OntologiaLaberinto;
+import laberinto.elementos.EntornoLaberinto;
 import laberinto.elementos.Jugada;
 import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.Laberinto;
@@ -60,7 +61,8 @@ public class AgenteRaton extends Agent {
     private Partida partida;
     private Laberinto tablero;
     private Posicion posicion;
-
+    private EntornoLaberinto entornoActual;
+    
     private AID[] agentesConsola;
     private ArrayList<String> mensajesPendientes;
 
@@ -204,6 +206,7 @@ public class AgenteRaton extends Agent {
                 partida = proposicionPartida.getPartida();
                 tablero = proposicionPartida.getLaberinto();
                 posicion = tablero.getPosicionInicio();
+                entornoActual= tablero.getEntornoInicio();
 
                 Jugador j = new Jugador(this.myAgent.getName(), this.myAgent.getAID());
                 PartidaAceptada pa = new PartidaAceptada(partida, j);
@@ -220,6 +223,8 @@ public class AgenteRaton extends Agent {
                 }
 
                 mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida());
+                mensajesPendientes.add("El entorno inicial es:\n    N:"+entornoActual.getNorte()+ " S:"+entornoActual.getSur()+ 
+                        " O:"+entornoActual.getOeste()+ " E:"+entornoActual.getEste());
 
                 return agree;
             } else {

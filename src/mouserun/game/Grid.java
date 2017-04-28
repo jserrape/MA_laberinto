@@ -1,6 +1,8 @@
 package mouserun.game;
 
 import java.util.*;
+import laberinto.OntologiaLaberinto;
+import laberinto.elementos.EntornoLaberinto;
 
 /**
  * Class Grid is the individual Grid of the Maze. Each Grid has a maximum of
@@ -103,28 +105,53 @@ public class Grid {
                 + (canGoRight() ? "-" : "0")
                 + (canGoLeft() ? "-" : "0") + ".png";
     }
-    
-    public void puedo(){
-        if(canGoUp()){
+
+    public void puedo() {
+        if (canGoUp()) {
             System.out.println("Puedo canGoUp()");
-        }else{
+        } else {
             System.out.println("No puedo canGoUp()");
         }
-        if(canGoDown()){
+        if (canGoDown()) {
             System.out.println("Puedo canGoDown()");
-        }else{
+        } else {
             System.out.println("No puedo canGoDown()");
         }
-        if(canGoLeft()){
+        if (canGoLeft()) {
             System.out.println("Puedo canGoLeft()");
-        }else{
+        } else {
             System.out.println("No puedo canGoLeft()");
         }
-        if(canGoRight()){
+        if (canGoRight()) {
             System.out.println("Puedo canGoRight()");
-        }else{
+        } else {
             System.out.println("No puedo canGoRight()");
         }
+    }
+
+    public EntornoLaberinto getEntorno() {
+        EntornoLaberinto entInicio = new EntornoLaberinto("", "", "", "");
+        if (canGoUp()) {
+            entInicio.setNorte(OntologiaLaberinto.LIBRE);
+        } else {
+            entInicio.setNorte(OntologiaLaberinto.MURO);
+        }
+        if (canGoDown()) {
+            entInicio.setSur(OntologiaLaberinto.LIBRE);
+        } else {
+            entInicio.setSur(OntologiaLaberinto.MURO);
+        }
+        if (canGoLeft()) {
+            entInicio.setOeste(OntologiaLaberinto.LIBRE);
+        } else {
+            entInicio.setOeste(OntologiaLaberinto.MURO);
+        }
+        if (canGoRight()) {
+            entInicio.setEste(OntologiaLaberinto.LIBRE);
+        } else {
+            entInicio.setEste(OntologiaLaberinto.MURO);
+        }
+        return entInicio;
     }
 
     /**
@@ -163,7 +190,6 @@ public class Grid {
         return getGrid(x - 1, y);
     }
 
-
     /**
      * @return Gets the grid above
      */
@@ -177,7 +203,6 @@ public class Grid {
     Grid down() {
         return getGrid(x, y - 1);
     }
-
 
     /**
      * @return Gets all walls connected to this grid.
