@@ -101,7 +101,7 @@ public class AgenteRaton extends Agent {
 
         //Se crea un mensaje de tipo SUBSCRIBE y se asocia al protocolo FIPA-Subscribe.
         //Partida p = new Partida(this.getLocalName(), "Base");
-        Jugador jugador = new Jugador(this.getLocalName(), this.getAID());
+        jugador = new Jugador(this.getLocalName(), this.getAID());
         InformarPartida inf = new InformarPartida(jugador);
 
         ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
@@ -116,9 +116,6 @@ public class AgenteRaton extends Agent {
         } catch (Codec.CodecException | OntologyException ex) {
             Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        //creo el objeto jugador
-        jugador = new Jugador(this.getName(), this.getAID());
 
         //Se añade el destinatario del mensaje
         AID id = new AID();
@@ -282,11 +279,13 @@ public class AgenteRaton extends Agent {
             respuesta.setLanguage(codec.getName());
             respuesta.setOntology(ontologia.getName());
             
+            try {
+                manager.fillContent(respuesta, jugEntregada);
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+            }
             
-            //< CONTINUAR AQUI >
-            
-            
-            return null;
+            return respuesta;
         }
 
         @Override

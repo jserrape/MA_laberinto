@@ -54,6 +54,7 @@ import juegos.elementos.Posicion;
 import juegos.elementos.Tablero;
 import laberinto.OntologiaLaberinto;
 import laberinto.elementos.EntornoLaberinto;
+import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.Laberinto;
 import laberinto.elementos.PosicionQueso;
 import laberinto.elementos.ProponerPartida;
@@ -384,7 +385,28 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected void handleAllResponses(Vector responses, Vector acceptances) {
+            String resultado = "Recividos los siguientes movimiento:";
+            JugadaEntregada jugada = null;
+            ACLMessage respuesta;
+            List<JugadaEntregada> jugadas = new ArrayList();
 
+            Iterator it = responses.iterator();
+            while (it.hasNext()) {
+                ACLMessage msg = (ACLMessage) it.next();
+
+                try {
+                    jugada = (JugadaEntregada) manager.extractContent(msg);
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                respuesta = msg.createReply();
+                respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+                acceptances.add(respuesta);
+                jugadas.add(jugada);
+                resultado += "\n    Jugador: " + jugada.getJugador().getNombre()+" Accion: "+jugada.getAccion().getJugada();
+            }
+            mensajesPendientes.add(resultado);
         }
     }
 

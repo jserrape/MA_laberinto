@@ -6,6 +6,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import juegos.elementos.Posicion;
 import laberinto.elementos.EntornoLaberinto;
+import laberinto.elementos.JugadaEntregada;
 import util.ResultadoRaton;
 
 /**
@@ -90,6 +91,10 @@ public class GameUI extends JFrame {
 
     public EntornoLaberinto getEntorno(int x, int y) {
         return maze.getGrid(x, y).getEntorno();
+    }
+    
+    public void hacerJugadas(java.util.List<JugadaEntregada> jugadas){
+    
     }
 
 
