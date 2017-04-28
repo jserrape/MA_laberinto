@@ -290,17 +290,14 @@ public class AgenteRaton extends Agent {
         @Override
         protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
             mensajesPendientes.add("Me ha llegado un ResultadoJugada");
-            Action ac;
-            ResultadoJugada resultado = null;
+            ResultadoJugada resultado;
 
             try {
-                ac = (Action) manager.extractContent(accept);
-                resultado = (ResultadoJugada) ac.getAction();
+                resultado = (ResultadoJugada ) manager.extractContent(accept);
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-
             return null;
         }
 

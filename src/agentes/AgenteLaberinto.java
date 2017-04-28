@@ -401,24 +401,24 @@ public class AgenteLaberinto extends Agent {
                     Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                respuesta = msg.createReply();
-                respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                acceptances.add(respuesta);
                 jugadas.add(jugada);
                 resultado += "\n    Jugador: " + jugada.getJugador().getNombre() + " Accion: " + jugada.getAccion().getJugada();
             }
             mensajesPendientes.add(resultado);
             System.out.println("---------------------------------");
-            List<ResultadoJugada> resultados = laberintoGUI.hacerJugadas(jugadas);
-            mensajesPendientes.add("Se han generado "+resultados.size()+" resultados de las "+jugadas.size()+" jugadas.");
-            
+            List<ResultadoJugada> resultados = laberintoGUI.hacerJugadas(jugadas,partidaActual);
+            mensajesPendientes.add("Se han generado " + resultados.size() + " resultados de las " + jugadas.size() + " jugadas.");
+
             ACLMessage resp;
-            int i=-1;
+            int i = -1;
             while (it.hasNext()) {
                 ++i;
                 ACLMessage msg = (ACLMessage) it.next();
-                resp=msg.createReply();
-                resp.setPerformative(ACLMessage.REJECT_PROPOSAL);
+                resp = msg.createReply();
+                resp.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+                resp.setSender(getAID());
+                resp.setLanguage(codec.getName());
+                resp.setOntology(ontology.getName());
                 try {
                     manager.fillContent(resp, resultados.get(i));
                 } catch (Codec.CodecException | OntologyException ex) {
