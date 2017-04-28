@@ -58,6 +58,7 @@ import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.Laberinto;
 import laberinto.elementos.PosicionQueso;
 import laberinto.elementos.ProponerPartida;
+import laberinto.elementos.ResultadoJugada;
 import util.ResultadoRaton;
 
 /**
@@ -404,11 +405,27 @@ public class AgenteLaberinto extends Agent {
                 respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
                 acceptances.add(respuesta);
                 jugadas.add(jugada);
-                resultado += "\n    Jugador: " + jugada.getJugador().getNombre()+" Accion: "+jugada.getAccion().getJugada();
+                resultado += "\n    Jugador: " + jugada.getJugador().getNombre() + " Accion: " + jugada.getAccion().getJugada();
             }
             mensajesPendientes.add(resultado);
             System.out.println("---------------------------------");
-            laberintoGUI.hacerJugadas(jugadas);
+            List<ResultadoJugada> resultados = laberintoGUI.hacerJugadas(jugadas);
+            mensajesPendientes.add("Se han generado "+resultados.size()+" resultados de las "+jugadas.size()+" jugadas.");
+            
+            ACLMessage resp;
+            int i=-1;
+            while (it.hasNext()) {
+                ++i;
+                ACLMessage msg = (ACLMessage) it.next();
+                resp=msg.createReply();
+                resp.setPerformative(ACLMessage.REJECT_PROPOSAL);
+                try {
+                    manager.fillContent(resp, resultados.get(i));
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                acceptances.add(resp);
+            }
         }
     }
 

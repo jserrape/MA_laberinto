@@ -46,6 +46,7 @@ import laberinto.elementos.Jugada;
 import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.Laberinto;
 import laberinto.elementos.ProponerPartida;
+import laberinto.elementos.ResultadoJugada;
 import util.ResultadoRaton;
 
 /**
@@ -62,7 +63,7 @@ public class AgenteRaton extends Agent {
     private Laberinto tablero;
     private Posicion posicion;
     private EntornoLaberinto entornoActual;
-    
+
     private AID[] agentesConsola;
     private ArrayList<String> mensajesPendientes;
 
@@ -202,7 +203,7 @@ public class AgenteRaton extends Agent {
                 partida = proposicionPartida.getPartida();
                 tablero = proposicionPartida.getLaberinto();
                 posicion = tablero.getPosicionInicio();
-                entornoActual= tablero.getEntornoInicio();
+                entornoActual = tablero.getEntornoInicio();
 
                 Jugador j = new Jugador(this.myAgent.getName(), this.myAgent.getAID());
                 PartidaAceptada pa = new PartidaAceptada(partida, j);
@@ -219,8 +220,8 @@ public class AgenteRaton extends Agent {
                 }
 
                 mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida());
-                mensajesPendientes.add("El entorno inicial es:\n    N:"+entornoActual.getNorte()+ " S:"+entornoActual.getSur()+ 
-                        " O:"+entornoActual.getOeste()+ " E:"+entornoActual.getEste());
+                mensajesPendientes.add("El entorno inicial es:\n    N:" + entornoActual.getNorte() + " S:" + entornoActual.getSur()
+                        + " O:" + entornoActual.getOeste() + " E:" + entornoActual.getEste());
 
                 return agree;
             } else {
@@ -268,7 +269,6 @@ public class AgenteRaton extends Agent {
             //////////////////
             /////////////////   AQUI DECIDO EL MOVIMIENTO QUE VOY A HACER
             ////////////////
-            
             Jugada jugada = new Jugada("Subir", posicion);
             JugadaEntregada jugEntregada = new JugadaEntregada(p, jugador, jugada);
 
@@ -277,24 +277,36 @@ public class AgenteRaton extends Agent {
             respuesta.setSender(myAgent.getAID());
             respuesta.setLanguage(codec.getName());
             respuesta.setOntology(ontologia.getName());
-            
+
             try {
                 manager.fillContent(respuesta, jugEntregada);
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
             return respuesta;
         }
 
         @Override
         protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
+            mensajesPendientes.add("Me ha llegado un ResultadoJugada");
+            Action ac;
+            ResultadoJugada resultado = null;
+
+            try {
+                ac = (Action) manager.extractContent(accept);
+                resultado = (ResultadoJugada) ac.getAction();
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+
             return null;
         }
 
         @Override
         protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
-
+            mensajesPendientes.add("Me ha llegado algo al handleRejectProposal");
         }
     }
 

@@ -4,9 +4,11 @@ import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import juegos.elementos.Partida;
 import juegos.elementos.Posicion;
 import laberinto.elementos.EntornoLaberinto;
 import laberinto.elementos.JugadaEntregada;
+import laberinto.elementos.ResultadoJugada;
 import util.ResultadoRaton;
 
 /**
@@ -93,8 +95,8 @@ public class GameUI extends JFrame {
         return maze.getGrid(x, y).getEntorno();
     }
     
-    public java.util.List<EntornoLaberinto> hacerJugadas(java.util.List<JugadaEntregada> jugadas){
-        java.util.List<EntornoLaberinto> nuevosEntornos;
+    public java.util.List<ResultadoJugada> hacerJugadas(java.util.List<JugadaEntregada> jugadas){
+        java.util.List<ResultadoJugada> nuevosEntornos;
         nuevosEntornos = new ArrayList();
         for(int i=0;i<jugadas.size();i++){
             for(int j=0;j<arrayRatas.size();j++){
@@ -122,7 +124,11 @@ public class GameUI extends JFrame {
                             
                             break;
                     }
-                    nuevosEntornos.add(getEntorno(arrayRatas.get(j).getX(),alto-1-arrayRatas.get(j).getY()));
+                    Partida p=new Partida();
+                    EntornoLaberinto ent=getEntorno(arrayRatas.get(j).getX(),alto-1-arrayRatas.get(j).getY());
+                    Posicion pos=new Posicion(arrayRatas.get(j).getX(),alto-1-arrayRatas.get(j).getY());
+                    ResultadoJugada resultadoJug=new ResultadoJugada(p,ent,pos);
+                    nuevosEntornos.add(resultadoJug);
                 }
             }
         }
