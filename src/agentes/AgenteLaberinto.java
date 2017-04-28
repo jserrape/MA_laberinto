@@ -388,9 +388,8 @@ public class AgenteLaberinto extends Agent {
         protected void handleAllResponses(Vector responses, Vector acceptances) {
             String resultado = "Recividos los siguientes movimiento:";
             JugadaEntregada jugada = null;
-            ACLMessage respuesta;
             List<JugadaEntregada> jugadas = new ArrayList();
-
+            ACLMessage respuesta;
             Iterator it = responses.iterator();
             while (it.hasNext()) {
                 ACLMessage msg = (ACLMessage) it.next();
@@ -400,31 +399,32 @@ public class AgenteLaberinto extends Agent {
                 } catch (Codec.CodecException | OntologyException ex) {
                     Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
                 }
-
+                respuesta = msg.createReply();
+                respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+                acceptances.add(respuesta);
                 jugadas.add(jugada);
                 resultado += "\n    Jugador: " + jugada.getJugador().getNombre() + " Accion: " + jugada.getAccion().getJugada();
             }
             mensajesPendientes.add(resultado);
             System.out.println("---------------------------------");
-            List<ResultadoJugada> resultados = laberintoGUI.hacerJugadas(jugadas,partidaActual);
+            List<ResultadoJugada> resultados = laberintoGUI.hacerJugadas(jugadas, partidaActual);
             mensajesPendientes.add("Se han generado " + resultados.size() + " resultados de las " + jugadas.size() + " jugadas.");
 
             ACLMessage resp;
+            ACLMessage msgg;
             int i = -1;
             while (it.hasNext()) {
                 ++i;
-                ACLMessage msg = (ACLMessage) it.next();
-                resp = msg.createReply();
-                resp.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                resp.setSender(getAID());
-                resp.setLanguage(codec.getName());
-                resp.setOntology(ontology.getName());
+                msgg = (ACLMessage) acceptances.get(i);
+
                 try {
-                    manager.fillContent(resp, resultados.get(i));
+                    manager.fillContent(msgg, resultados.get(i));
                 } catch (Codec.CodecException | OntologyException ex) {
                     Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                acceptances.add(resp);
+
+                acceptances.set(i, msgg);
+
             }
         }
     }
