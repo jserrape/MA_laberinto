@@ -93,8 +93,40 @@ public class GameUI extends JFrame {
         return maze.getGrid(x, y).getEntorno();
     }
     
-    public void hacerJugadas(java.util.List<JugadaEntregada> jugadas){
-    
+    public java.util.List<EntornoLaberinto> hacerJugadas(java.util.List<JugadaEntregada> jugadas){
+        java.util.List<EntornoLaberinto> nuevosEntornos;
+        nuevosEntornos = new ArrayList();
+        for(int i=0;i<jugadas.size();i++){
+            for(int j=0;j<arrayRatas.size();j++){
+                System.out.println(jugadas.get(i).getJugador().getNombre());
+                System.out.println(arrayRatas.get(j).getJLabel().getText());
+                System.out.println("-");
+                if(jugadas.get(i).getJugador().getNombre().equals(arrayRatas.get(j).getJLabel().getText())){
+                    int x=arrayRatas.get(j).getX();
+                    int y=arrayRatas.get(j).getY();
+                    String accion=jugadas.get(i).getAccion().getJugada();
+                    switch (accion) {
+                        case "Subir":
+                            arrayRatas.get(j).setPosicion(x, y-1);
+                            break;
+                        case "Bajar":
+                            arrayRatas.get(j).setPosicion(x, y+1);
+                            break;
+                        case "Izquierda":
+                            arrayRatas.get(j).setPosicion(x-1, y);
+                            break;
+                        case "Derecha":
+                            arrayRatas.get(j).setPosicion(x+1, y);
+                            break;
+                        case "Cagar":
+                            
+                            break;
+                    }
+                    nuevosEntornos.add(getEntorno(arrayRatas.get(j).getX(),alto-1-arrayRatas.get(j).getY()));
+                }
+            }
+        }
+        return nuevosEntornos;
     }
 
 
@@ -110,6 +142,7 @@ public class GameUI extends JFrame {
         Rata rata;
         for (int i = 0; i < ratonesPartida.size(); i++) {
             rata = new Rata(ratonesPartida.get(i).getNombre(), posicionInicio.getCoorX(), alto-1-posicionInicio.getCoorY());
+            arrayRatas.add(rata);
             container.add(rata.getPanel());
             container.moveToFront(rata.getPanel());
             container.add(rata.getJLabel());

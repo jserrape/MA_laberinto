@@ -59,8 +59,8 @@ public class Rata {
     public void setPosicion(int _x, int _y) {
         this.x = _x;
         this.y = _y;
-        panel.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
-        label.setBounds(x * GRID_LENGTH, y * GRID_LENGTH - 5, GRID_LENGTH * 2, 20);
+        panel.setBounds(getX() * GRID_LENGTH, getY() * GRID_LENGTH, GRID_LENGTH * 2, 20);
+        label.setBounds(getX() * GRID_LENGTH, getY() * GRID_LENGTH - 5, GRID_LENGTH * 2, 20);
     }
 
     /**
@@ -68,6 +68,20 @@ public class Rata {
      */
     public JLabel getJLabel() {
         return label;
+    }
+
+    /**
+     * @return the x
+     */
+    public int getX() {
+        return x;
+    }
+
+    /**
+     * @return the y
+     */
+    public int getY() {
+        return y;
     }
 
 }

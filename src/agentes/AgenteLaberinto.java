@@ -407,6 +407,8 @@ public class AgenteLaberinto extends Agent {
                 resultado += "\n    Jugador: " + jugada.getJugador().getNombre()+" Accion: "+jugada.getAccion().getJugada();
             }
             mensajesPendientes.add(resultado);
+            System.out.println("---------------------------------");
+            laberintoGUI.hacerJugadas(jugadas);
         }
     }
 

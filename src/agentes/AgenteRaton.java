@@ -100,8 +100,7 @@ public class AgenteRaton extends Agent {
         }
 
         //Se crea un mensaje de tipo SUBSCRIBE y se asocia al protocolo FIPA-Subscribe.
-        //Partida p = new Partida(this.getLocalName(), "Base");
-        jugador = new Jugador(this.getLocalName(), this.getAID());
+        jugador = new Jugador(this.getName(), this.getAID());
         InformarPartida inf = new InformarPartida(jugador);
 
         ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
@@ -270,7 +269,7 @@ public class AgenteRaton extends Agent {
             /////////////////   AQUI DECIDO EL MOVIMIENTO QUE VOY A HACER
             ////////////////
             
-            Jugada jugada = new Jugada("1", posicion);
+            Jugada jugada = new Jugada("Subir", posicion);
             JugadaEntregada jugEntregada = new JugadaEntregada(p, jugador, jugada);
 
             ACLMessage respuesta = cfp.createReply();
