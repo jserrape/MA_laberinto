@@ -322,7 +322,7 @@ public class AgenteLaberinto extends Agent {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            myAgent.addBehaviour(new TareaInicioRonda(partida.getPartida().getIdPartida()));
+            myAgent.addBehaviour(new TareaInicioRonda(this.getAgent(), 1000, partida.getPartida().getIdPartida()));
         }
 
         @Override
@@ -337,18 +337,19 @@ public class AgenteLaberinto extends Agent {
 
     }
 
-    class TareaInicioRonda extends OneShotBehaviour {
+    class TareaInicioRonda extends TickerBehaviour {
 
         private final String idPartida;
         private final Partida partida;
 
-        public TareaInicioRonda(String idPartida) {
+        public TareaInicioRonda(Agent a, long period, String idPartida) {
+            super(a, period);
             this.idPartida = idPartida;
             this.partida = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
         }
 
         @Override
-        public void action() {
+        public void onTick() {
             //ratonesPartida
             ACLMessage msg = new ACLMessage(ACLMessage.CFP);
             msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
@@ -376,6 +377,7 @@ public class AgenteLaberinto extends Agent {
             mensajesPendientes.add(mensaj);
             addBehaviour(new TareaJugarPartida(this.myAgent, msg));
         }
+
     }
 
     class TareaJugarPartida extends ContractNetInitiator {
@@ -425,8 +427,7 @@ public class AgenteLaberinto extends Agent {
                 acceptances.set(i, msgg);
             }
         }
-        
-        
+
     }
 
     //myAgent.addBehaviour(new TareaInicioRonda(partida.getPartida().getIdPartida()));
