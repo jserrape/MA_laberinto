@@ -95,23 +95,23 @@ public class GameUI extends JFrame {
     public EntornoLaberinto getEntorno(int x, int y) {
         return maze.getGrid(x, y).getEntorno();
     }
-    
-    public java.util.List<ResultadoJugada> hacerJugadas(java.util.List<JugadaEntregada> jugadas,Partida part){
+
+    public java.util.List<ResultadoJugada> hacerJugadas(java.util.List<JugadaEntregada> jugadas, Partida part) throws IOException {
         java.util.List<ResultadoJugada> nuevosEntornos;
         nuevosEntornos = new ArrayList();
-        for(int i=0;i<jugadas.size();i++){
-            for(int j=0;j<arrayRatas.size();j++){
-                if(jugadas.get(i).getJugador().getNombre().equals(arrayRatas.get(j).getJLabel().getText())){
-                    int x=arrayRatas.get(j).getX();
-                    int y=arrayRatas.get(j).getY();
-                    if(jugadas.get(i).getAccion().getJugada().equals(OntologiaLaberinto.MOVIMIENTO)){
-                        arrayRatas.get(j).setPosicion(jugadas.get(i).getAccion().getPosicion().getCoorX(), alto-1-jugadas.get(i).getAccion().getPosicion().getCoorY());
-                    }else{
-                    
+        for (int i = 0; i < jugadas.size(); i++) {
+            for (int j = 0; j < arrayRatas.size(); j++) {
+                if (jugadas.get(i).getJugador().getNombre().equals(arrayRatas.get(j).getJLabel().getText())) {
+                    int x = arrayRatas.get(j).getX();
+                    int y = arrayRatas.get(j).getY();
+                    if (jugadas.get(i).getAccion().getJugada().equals(OntologiaLaberinto.MOVIMIENTO)) {
+                        arrayRatas.get(j).setPosicion(jugadas.get(i).getAccion().getPosicion().getCoorX(), alto - 1 - jugadas.get(i).getAccion().getPosicion().getCoorY());
+                    } else {
+
                     }
-                    EntornoLaberinto ent=getEntorno(arrayRatas.get(j).getX(),alto-1-arrayRatas.get(j).getY());
-                    Posicion pos=new Posicion(arrayRatas.get(j).getX(),alto-1-arrayRatas.get(j).getY());
-                    ResultadoJugada resultadoJug=new ResultadoJugada(part,ent,pos);
+                    EntornoLaberinto ent = getEntorno(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
+                    Posicion pos = new Posicion(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
+                    ResultadoJugada resultadoJug = new ResultadoJugada(part, ent, pos);
                     nuevosEntornos.add(resultadoJug);
                 }
             }
@@ -119,11 +119,10 @@ public class GameUI extends JFrame {
         return nuevosEntornos;
     }
 
-
     public void nuevoQueso() throws IOException {
         int x = (int) (Math.random() * alto);
         int y = (int) (Math.random() * ancho);
-        quesito = new Queso(x, alto-1-y);
+        quesito = new Queso(x, alto - 1 - y);
         container.add(quesito.getPanel());
         container.moveToFront(quesito.getPanel());
     }
@@ -131,12 +130,23 @@ public class GameUI extends JFrame {
     public void generarRatones(Posicion posicionInicio, ArrayList<ResultadoRaton> ratonesPartida) throws IOException {
         Rata rata;
         for (int i = 0; i < ratonesPartida.size(); i++) {
-            rata = new Rata(ratonesPartida.get(i).getNombre(), posicionInicio.getCoorX(), alto-1-posicionInicio.getCoorY());
+            rata = new Rata(ratonesPartida.get(i).getNombre(), posicionInicio.getCoorX(), alto - 1 - posicionInicio.getCoorY());
             arrayRatas.add(rata);
             container.add(rata.getPanel());
             container.moveToFront(rata.getPanel());
             container.add(rata.getJLabel());
             container.moveToFront(rata.getJLabel());
+        }
+    }
+
+    public void comprobarQueso() {
+        for (int j = 0; j < arrayRatas.size(); j++) {
+            if (arrayRatas.get(j).getX() == quesito.getX() && arrayRatas.get(j).getY() == quesito.getY()) {
+                arrayRatas.get(j).incrementaQueso();
+                int x = (int) (Math.random() * alto);
+                int y = (int) (Math.random() * ancho);
+                quesito.setPosicion(x, alto - 1 - y);
+            }
         }
     }
 

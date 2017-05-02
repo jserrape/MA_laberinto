@@ -322,7 +322,7 @@ public class AgenteLaberinto extends Agent {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            myAgent.addBehaviour(new TareaInicioRonda(this.getAgent(), 500, partida.getPartida().getIdPartida())); //<-----------------------------------------
+            myAgent.addBehaviour(new TareaInicioRonda(this.getAgent(), 200, partida.getPartida().getIdPartida())); //<-----------------------------------------
         }
 
         @Override
@@ -409,7 +409,12 @@ public class AgenteLaberinto extends Agent {
             }
             mensajesPendientes.add(resultado);
 
-            List<ResultadoJugada> resultados = laberintoGUI.hacerJugadas(jugadas, partidaActual);
+            List<ResultadoJugada> resultados = null;
+            try {
+                resultados = laberintoGUI.hacerJugadas(jugadas, partidaActual);
+            } catch (IOException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
             mensajesPendientes.add("Se han generado " + resultados.size() + " resultados de las " + jugadas.size() + " jugadas.");
 
             ACLMessage msgg;
@@ -424,6 +429,8 @@ public class AgenteLaberinto extends Agent {
 
                 acceptances.set(i, msgg);
             }
+            
+            laberintoGUI.comprobarQueso();
         }
 
     }

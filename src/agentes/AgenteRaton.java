@@ -81,8 +81,6 @@ public class AgenteRaton extends Agent {
     //Elementos para el movimiento
     //Casillas visitadas durante la aparicion de este queso
     private Map<Integer, Posicion> casillasVisitadasQueso;
-    //Casillas visitadas en toda la partida
-    private Map<Integer, Posicion> casillasVisitadasJuego;
     //Pila para volver hacia atras
     private Stack<Integer> pila;
     //Clave del raton de la poscion actual
@@ -104,7 +102,6 @@ public class AgenteRaton extends Agent {
         jugando = false;
 
         casillasVisitadasQueso = new HashMap<>();
-        casillasVisitadasJuego = new HashMap<>();
         pila = new Stack<>();
         claveQueso = 0;
         bombas = 0;
@@ -424,10 +421,6 @@ public class AgenteRaton extends Agent {
             casillasVisitadasQueso.put(claveActual, new Posicion(posicion.getCoorX(), posicion.getCoorY()));
         }
 
-        //Comprobacion de que la casilla no esta en la memoria del raton
-        if (casillasVisitadasJuego.get(claveActual) == null) {
-            casillasVisitadasJuego.put(claveActual, new Posicion(posicion.getCoorX(), posicion.getCoorY()));
-        }
 
         //Elegir un movimiento con prioridad
         for (int i = 1; i < 5; i++) {
@@ -448,8 +441,18 @@ public class AgenteRaton extends Agent {
                 return;
             }
         }
-
-        aplicar(pila.pop());
+        
+        if(!pila.isEmpty()){
+            aplicar(pila.pop());
+        }else{
+            reinicio();
+            moverse();
+        }        
+    }
+    
+    public void reinicio(){
+        casillasVisitadasQueso.clear();
+        pila.clear();
     }
 
     public int funcionDeDispersion(int x, int y, int direccion) {

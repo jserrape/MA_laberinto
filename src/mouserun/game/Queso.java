@@ -8,6 +8,20 @@ import java.io.IOException;
  */
 public class Queso {
 
+    /**
+     * @return the x
+     */
+    public int getX() {
+        return x;
+    }
+
+    /**
+     * @return the y
+     */
+    public int getY() {
+        return y;
+    }
+
     private int x;
     private int y;
     private ImagedPanel panel;
@@ -45,7 +59,7 @@ public class Queso {
     public void setPosicion(int _x, int _y) {
         this.x = _x;
         this.y = _y;
-        panel.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
+        panel.setBounds(getX() * GRID_LENGTH, getY() * GRID_LENGTH, GRID_LENGTH * 2, 20);
     }
 
 }
