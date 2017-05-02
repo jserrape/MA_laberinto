@@ -38,6 +38,7 @@ import jade.proto.SubscriptionResponder.Subscription;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -87,6 +88,7 @@ public class AgenteLaberinto extends Agent {
     private Partida partidaActual;
     private boolean partidaIniciada;
     private ArrayList<ResultadoRaton> ratonesPartida;
+    private boolean objetivoQuesos;
 
     //Variables para la ontologia
     private ContentManager manager = (ContentManager) getContentManager();
@@ -108,6 +110,7 @@ public class AgenteLaberinto extends Agent {
         suscripcionesJugadores = new HashSet();
         numPartida = 0;
         partidaIniciada = false;
+        objetivoQuesos = false;
 
         //REGISTRO DE LA ONTOLOGIA
         try {
@@ -162,7 +165,7 @@ public class AgenteLaberinto extends Agent {
         this.tiempo = t;
         this.quesosMax = mq;
         this.maxTrampas = mt;
-        laberintoGUI = new GameUI(ancho, alto);
+        laberintoGUI = new GameUI(ancho, alto,mq,this);
         laberintoGUI.setVisible(true);
         addBehaviour(new TareaNuevaPartida());
     }
@@ -322,7 +325,9 @@ public class AgenteLaberinto extends Agent {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            myAgent.addBehaviour(new TareaInicioRonda(this.getAgent(), 200, partida.getPartida().getIdPartida())); //<-----------------------------------------
+            TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 200, partida.getPartida().getIdPartida());//<-----------------------------------------
+            myAgent.addBehaviour(new acabarPartida(this.getAgent(), tiempo * 1000, tarea));
+            myAgent.addBehaviour(tarea);
         }
 
         @Override
@@ -350,34 +355,36 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         public void onTick() {
-            //ratonesPartida
-            ACLMessage msg = new ACLMessage(ACLMessage.CFP);
-            msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
-            msg.setSender(getAID());
-            msg.setLanguage(codec.getName());
-            msg.setOntology(ontology.getName());
+            if (!objetivoQuesos) {
+                ACLMessage msg = new ACLMessage(ACLMessage.CFP);
+                msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
+                msg.setSender(getAID());
+                msg.setLanguage(codec.getName());
+                msg.setOntology(ontology.getName());
 
-            for (int i = 0; i < ratonesPartida.size(); i++) {
-                msg.addReceiver(ratonesPartida.get(i).getAidRaton());
+                for (int i = 0; i < ratonesPartida.size(); i++) {
+                    msg.addReceiver(ratonesPartida.get(i).getAidRaton());
+                }
+                msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
+
+                Action ac = new Action(this.myAgent.getAID(), partida);
+
+                try {
+                    manager.fillContent(msg, ac);
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                String mensaj = "Se ha pedido una jugada a los agentes:\n";
+                for (int i = 0; i < ratonesPartida.size(); i++) {
+                    mensaj += "   " + ratonesPartida.get(i).getNombre() + "\n";
+                }
+                mensajesPendientes.add(mensaj);
+                addBehaviour(new TareaJugarPartida(this.myAgent, msg));
+            }else{
+                this.stop();
             }
-            msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
-
-            Action ac = new Action(this.myAgent.getAID(), partida);
-
-            try {
-                manager.fillContent(msg, ac);
-            } catch (Codec.CodecException | OntologyException ex) {
-                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            String mensaj = "Se ha pedido una jugada a los agentes:\n";
-            for (int i = 0; i < ratonesPartida.size(); i++) {
-                mensaj += "   " + ratonesPartida.get(i).getNombre() + "\n";
-            }
-            mensajesPendientes.add(mensaj);
-            addBehaviour(new TareaJugarPartida(this.myAgent, msg));
         }
-
     }
 
     class TareaJugarPartida extends ContractNetInitiator {
@@ -429,13 +436,12 @@ public class AgenteLaberinto extends Agent {
 
                 acceptances.set(i, msgg);
             }
-            
+
             laberintoGUI.comprobarQueso();
         }
 
     }
 
-    //myAgent.addBehaviour(new TareaInicioRonda(partida.getPartida().getIdPartida()));
     public class TareaBuscarAgentes extends TickerBehaviour {
 
         //Se buscarán agentes consola y operación
@@ -517,7 +523,6 @@ public class AgenteLaberinto extends Agent {
                     // 
                     //System.out.println("Enviado a: " + agentesConsola[0].getName());
                     //System.out.println("Contenido: " + mensaje.getContent());
-
                     myAgent.send(mensaje);
                 } else {
                     mensaje = new ACLMessage(ACLMessage.INFORM);
@@ -527,5 +532,25 @@ public class AgenteLaberinto extends Agent {
                 }
             }
         }
+    }
+
+    public class acabarPartida extends TickerBehaviour {
+
+        private TareaInicioRonda tarea;
+
+        public acabarPartida(Agent a, long period, TareaInicioRonda t) {
+            super(a, period);
+            this.tarea = t;
+        }
+
+        @Override
+        protected void onTick() {
+            tarea.stop();
+            this.stop();
+        }
+    }
+    
+    public void lograrObjetivoQuesos(){
+        objetivoQuesos=true;
     }
 }

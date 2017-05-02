@@ -1,5 +1,6 @@
 package mouserun.game;
 
+import agentes.AgenteLaberinto;
 import java.io.*;
 import javax.swing.*;
 import java.awt.*;
@@ -18,6 +19,8 @@ import util.ResultadoRaton;
  */
 public class GameUI extends JFrame {
 
+    private AgenteLaberinto agente;
+    
     private Maze maze;
     private int GRID_LENGTH = 30;
     private ImagedPanel[][] mazePanels;
@@ -29,22 +32,29 @@ public class GameUI extends JFrame {
 
     private int ancho;
     private int alto;
+    
+    private int maxQuesos;
 
     /**
      * Creates an instance of the GameUI.
      *
      * @param ancho The width of the user interface.
      * @param alto The height of the user interface.
+     * @param mQuesos
+     * @param agent
      * @throws IOException An IOException can occur when the required game
      * assets are missing.
      * @throws java.lang.InterruptedException
      */
-    public GameUI(int ancho, int alto) throws IOException, InterruptedException {
+    public GameUI(int ancho, int alto,int mQuesos,AgenteLaberinto agent) throws IOException, InterruptedException {
         super("Agente raton de UJAtaco");
         GRID_LENGTH = 30;
 
         this.ancho = ancho;
         this.alto = alto;
+        
+        this.agente=agent;
+        this.maxQuesos=mQuesos;
 
         this.mazePanels = new ImagedPanel[ancho][alto];
         this.maze = new Maze(ancho, alto);
@@ -146,6 +156,9 @@ public class GameUI extends JFrame {
                 int x = (int) (Math.random() * alto);
                 int y = (int) (Math.random() * ancho);
                 quesito.setPosicion(x, alto - 1 - y);
+                if(arrayRatas.get(j).getQuesos()==this.maxQuesos){
+                    this.agente.lograrObjetivoQuesos();
+                }
             }
         }
     }
