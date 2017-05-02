@@ -105,7 +105,6 @@ public class AgenteRaton extends Agent {
         pila = new Stack<>();
         claveQueso = 0;
         bombas = 0;
-        bombasRestantes = 5;
         comprobarPosicion = false;
 
         DFAgentDescription dfd = new DFAgentDescription();
@@ -215,64 +214,42 @@ public class AgenteRaton extends Agent {
 
         @Override
         protected ACLMessage prepareResponse(ACLMessage propuesta) throws NotUnderstoodException {
-            if (!jugando) {
-                jugando = !jugando;
-                ProponerPartida proposicionPartida = null;
-                Action ac;
+            ProponerPartida proposicionPartida = null;
+            Action ac;
 
-                try {
-                    ac = (Action) manager.extractContent(propuesta);
-                    proposicionPartida = (ProponerPartida) ac.getAction();
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                //AQUI TENGO EL TABLERO y LA INFO DE LA PARTIDA
-                partida = proposicionPartida.getPartida();
-                tablero = proposicionPartida.getLaberinto();
-                posicion = tablero.getPosicionInicio();
-                entornoActual = tablero.getEntornoInicio();
-
-                Jugador j = new Jugador(this.myAgent.getName(), this.myAgent.getAID());
-                PartidaAceptada pa = new PartidaAceptada(partida, j);
-
-                ACLMessage agree = propuesta.createReply();
-                agree.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                agree.setLanguage(codec.getName());
-                agree.setOntology(ontologia.getName());
-
-                try {
-                    manager.fillContent(agree, pa);
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida());
-                mensajesPendientes.add("El entorno inicial es:\n    N:" + entornoActual.getNorte() + " S:" + entornoActual.getSur()
-                        + " O:" + entornoActual.getOeste() + " E:" + entornoActual.getEste());
-
-                return agree;
-            } else {
-                ProponerPartida proposicionPartida = null;
-                Action ac;
-
-                try {
-                    ac = (Action) manager.extractContent(propuesta);
-                    proposicionPartida = (ProponerPartida) ac.getAction();
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                Partida partida = proposicionPartida.getPartida();
-                mensajesPendientes.add("RECHAZO una proposicion de partida con id " + partida.getIdPartida());
-
-                ACLMessage desagree = propuesta.createReply();
-                desagree.setPerformative(ACLMessage.REJECT_PROPOSAL);
-                desagree.setLanguage(codec.getName());
-                desagree.setOntology(ontologia.getName());
-
-                return desagree;
+            try {
+                ac = (Action) manager.extractContent(propuesta);
+                proposicionPartida = (ProponerPartida) ac.getAction();
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
+
+            //AQUI TENGO EL TABLERO y LA INFO DE LA PARTIDA
+            partida = proposicionPartida.getPartida();
+            tablero = proposicionPartida.getLaberinto();
+            bombasRestantes=tablero.getNumTrampasActivas();
+            posicion = tablero.getPosicionInicio();
+            entornoActual = tablero.getEntornoInicio();
+            Jugador j = new Jugador(this.myAgent.getName(), this.myAgent.getAID());
+            PartidaAceptada pa = new PartidaAceptada(partida, j);
+
+            ACLMessage agree = propuesta.createReply();
+            agree.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+            agree.setLanguage(codec.getName());
+            agree.setOntology(ontologia.getName());
+
+            try {
+                manager.fillContent(agree, pa);
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida());
+            mensajesPendientes.add("El entorno inicial es:\n    N:" + entornoActual.getNorte() + " S:" + entornoActual.getSur()
+                    + " O:" + entornoActual.getOeste() + " E:" + entornoActual.getEste());
+
+            return agree;
+
         }
     }
 
@@ -294,10 +271,13 @@ public class AgenteRaton extends Agent {
             }
             mensajesPendientes.add("Me ha llegado una peticion de ronda para la partida con id=" + p.getIdPartida());
 
-            moverse();
+            Jugada jugada;
+            if(moverse()){
+                jugada = new Jugada(OntologiaLaberinto.MOVIMIENTO, posicion);
+            }else{
+                jugada = new Jugada(OntologiaLaberinto.TRAMPA, posicion);
+            }
 
-
-            Jugada jugada = new Jugada(OntologiaLaberinto.MOVIMIENTO, posicion);
             JugadaEntregada jugEntregada = new JugadaEntregada(p, jugador, jugada);
 
             ACLMessage respuesta = cfp.createReply();
@@ -407,7 +387,11 @@ public class AgenteRaton extends Agent {
         }
     }
 
-    private void moverse() {
+    /**
+     * 
+     * @return true si no pongo bomba, false si la pongo
+     */
+    private boolean  moverse() {
         claveActual = funcionDeDispersion(posicion.getCoorX(), posicion.getCoorY(), 0);
         claveQueso = funcionDeDispersion(5, 5, 0);
 
@@ -415,12 +399,15 @@ public class AgenteRaton extends Agent {
         //
         //
         //Colocacion de las bombas
-        //
-        //
+        bombas++;
+        if (bombas == 60 && bombasRestantes != 0) {
+            bombas = 0;
+            --bombasRestantes;
+            return false;
+        }
         if (casillasVisitadasQueso.get(claveActual) == null) {
             casillasVisitadasQueso.put(claveActual, new Posicion(posicion.getCoorX(), posicion.getCoorY()));
         }
-
 
         //Elegir un movimiento con prioridad
         for (int i = 1; i < 5; i++) {
@@ -428,7 +415,7 @@ public class AgenteRaton extends Agent {
             if (meAcerco(i) && movimientoValido(i) && casillasVisitadasQueso.get(auxClave) == null) {
                 pila.add(retrocede(i));
                 aplicar(i);
-                return;
+                return true;
             }
         }
 
@@ -438,19 +425,20 @@ public class AgenteRaton extends Agent {
             if (movimientoValido(i) && casillasVisitadasQueso.get(auxClave) == null) {
                 pila.add(retrocede(i));
                 aplicar(i);
-                return;
+                return true;
             }
         }
-        
-        if(!pila.isEmpty()){
+
+        if (!pila.isEmpty()) {
             aplicar(pila.pop());
-        }else{
+        } else {
             reinicio();
             moverse();
-        }        
+        }
+        return true;
     }
-    
-    public void reinicio(){
+
+    public void reinicio() {
         casillasVisitadasQueso.clear();
         pila.clear();
     }

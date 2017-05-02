@@ -29,6 +29,7 @@ public class GameUI extends JFrame {
     //Ratas y queso
     private Queso quesito;
     private ArrayList<Rata> arrayRatas;
+    private ArrayList<Bomba> arrayBombas;
 
     private int ancho;
     private int alto;
@@ -49,6 +50,8 @@ public class GameUI extends JFrame {
     public GameUI(int ancho, int alto, int mQuesos, AgenteLaberinto agent) throws IOException, InterruptedException {
         super("Agente raton de UJAtaco");
         GRID_LENGTH = 30;
+
+        arrayBombas = new ArrayList();
 
         this.ancho = ancho;
         this.alto = alto;
@@ -117,7 +120,7 @@ public class GameUI extends JFrame {
                     if (jugadas.get(i).getAccion().getJugada().equals(OntologiaLaberinto.MOVIMIENTO)) {
                         arrayRatas.get(j).setPosicion(jugadas.get(i).getAccion().getPosicion().getCoorX(), alto - 1 - jugadas.get(i).getAccion().getPosicion().getCoorY());
                     } else {
-
+                        nuevaTrampa(x,y,jugadas.get(i).getJugador().getNombre());
                     }
                     EntornoLaberinto ent = getEntorno(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
                     Posicion pos = new Posicion(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
@@ -135,6 +138,13 @@ public class GameUI extends JFrame {
         quesito = new Queso(x, alto - 1 - y);
         container.add(quesito.getPanel());
         container.moveToFront(quesito.getPanel());
+    }
+
+    public void nuevaTrampa(int x, int y, String creador) throws IOException {
+        Bomba bomb = new Bomba(x, y, creador);
+        container.add(bomb.getPanel());
+        container.moveToFront(bomb.getPanel());
+        arrayBombas.add(bomb);
     }
 
     public void generarRatones(Posicion posicionInicio, ArrayList<ResultadoRaton> ratonesPartida) throws IOException {

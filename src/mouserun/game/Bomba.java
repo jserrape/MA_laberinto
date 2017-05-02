@@ -25,7 +25,7 @@ public class Bomba {
         this.x = _x;
         this.y = _y;
         this.creador = _creador;
-        panel = new ImagedPanel("assets/bomb.png", GRID_LENGTH, GRID_LENGTH);
+        panel = new ImagedPanel("assets/bomb.png", GRID_LENGTH-10, GRID_LENGTH-10);
         panel.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
         panel.setOpaque(false);
     }

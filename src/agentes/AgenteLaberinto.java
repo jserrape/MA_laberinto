@@ -99,7 +99,7 @@ public class AgenteLaberinto extends Agent {
     private Set<Subscription> suscripcionesJugadores;
 
     // Valores por defecto
-    private final long TIME_OUT = 20000; // 2seg
+    private final long TIME_OUT = 2000; // 2seg
 
     @Override
     protected void setup() {

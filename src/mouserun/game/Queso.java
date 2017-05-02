@@ -38,7 +38,7 @@ public class Queso {
     public Queso(int _x, int _y) throws IOException {
         this.x = _x;
         this.y = _y;
-        panel = new ImagedPanel("assets/cheese.png", GRID_LENGTH, GRID_LENGTH);
+        panel = new ImagedPanel("assets/cheese.png", GRID_LENGTH-10, GRID_LENGTH-10);
         panel.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
         panel.setOpaque(false);
     }
