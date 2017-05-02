@@ -406,17 +406,16 @@ public class AgenteLaberinto extends Agent {
                 resultado += "\n    Jugador: " + jugada.getJugador().getNombre() + " Accion: " + jugada.getAccion().getJugada();
             }
             mensajesPendientes.add(resultado);
-            System.out.println("---------------------------------");
+
             List<ResultadoJugada> resultados = laberintoGUI.hacerJugadas(jugadas, partidaActual);
             mensajesPendientes.add("Se han generado " + resultados.size() + " resultados de las " + jugadas.size() + " jugadas.");
 
             ACLMessage resp;
             ACLMessage msgg;
-            int i = -1;
-            while (it.hasNext()) {
-                ++i;
+            for (int i = 0; i < jugadas.size(); i++) {
                 msgg = (ACLMessage) acceptances.get(i);
 
+                System.out.println(resultados.get(i).toString());
                 try {
                     manager.fillContent(msgg, resultados.get(i));
                 } catch (Codec.CodecException | OntologyException ex) {
@@ -424,7 +423,6 @@ public class AgenteLaberinto extends Agent {
                 }
 
                 acceptances.set(i, msgg);
-
             }
         }
     }

@@ -292,7 +292,7 @@ public class AgenteRaton extends Agent {
             mensajesPendientes.add("Me ha llegado un ResultadoJugada");
             ResultadoJugada resultado = null;
 
-
+            System.out.println(accept);
             try {
                 resultado = (ResultadoJugada ) manager.extractContent(accept);
             } catch (Codec.CodecException | OntologyException ex) {
