@@ -325,7 +325,7 @@ public class AgenteLaberinto extends Agent {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 200, partida.getPartida().getIdPartida());//<-----------------------------------------
+            TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 200, partida.getPartida().getIdPartida());//<-----------------------------------------200
             myAgent.addBehaviour(new acabarPartida(this.getAgent(), tiempo * 1000, tarea));
             myAgent.addBehaviour(tarea);
         }
@@ -396,14 +396,13 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected void handleAllResponses(Vector responses, Vector acceptances) {
-            String resultado = "Recividos los siguientes movimiento:";
+            String resultado = "Recibidos los siguientes movimiento:";
             JugadaEntregada jugada = null;
             List<JugadaEntregada> jugadas = new ArrayList();
             ACLMessage respuesta;
             Iterator it = responses.iterator();
             while (it.hasNext()) {
                 ACLMessage msg = (ACLMessage) it.next();
-
                 try {
                     jugada = (JugadaEntregada) manager.extractContent(msg);
                 } catch (Codec.CodecException | OntologyException ex) {
@@ -437,8 +436,6 @@ public class AgenteLaberinto extends Agent {
 
                 acceptances.set(i, msgg);
             }
-
-            laberintoGUI.comprobarQueso();
         }
 
     }

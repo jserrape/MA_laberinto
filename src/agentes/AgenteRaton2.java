@@ -403,7 +403,7 @@ public class AgenteRaton2 extends Agent {
         if (bombas == 60 && bombasRestantes != 0) {
             bombas = 0;
             --bombasRestantes;
-            return false;
+            //return false;
         }
         if (casillasVisitadasQueso.get(claveActual) == null) {
             casillasVisitadasQueso.put(claveActual, new Posicion(posicion.getCoorX(), posicion.getCoorY()));

@@ -129,6 +129,8 @@ public class GameUI extends JFrame {
                 }
             }
         }
+        comprobarQueso();
+        comprobarBombas(nuevosEntornos, jugadas);
         return nuevosEntornos;
     }
 
@@ -170,6 +172,28 @@ public class GameUI extends JFrame {
                 quesito.setPosicion(x, alto - 1 - y);
                 if (arrayRatas.get(j).getQuesos() == this.maxQuesos) {
                     mostrarFIN();
+                }
+            }
+        }
+    }
+
+    public void comprobarBombas(java.util.List<ResultadoJugada> nuevosEntornos, java.util.List<JugadaEntregada> jugadas) throws IOException {
+        for (int i = 0; i < arrayRatas.size(); i++) {
+            for (int j = 0; j < arrayBombas.size(); j++) {
+                if (!arrayBombas.get(j).getLabel().getText().equals(arrayRatas.get(i).getJLabel().getText())) {
+                    if (arrayBombas.get(j).getX() == arrayRatas.get(i).getX() && arrayBombas.get(j).getY() == arrayRatas.get(i).getY()) { //Esta rata debe morir
+                        int x = (int) (Math.random() * alto);
+                        int y = (int) (Math.random() * ancho);
+                        arrayRatas.get(i).setPosicion(x, y);
+                        for (int z = 0; z < jugadas.size(); z++) {
+                            if (jugadas.get(z).getJugador().getNombre().equals(arrayRatas.get(i).getJLabel().getText())) {
+                                //Posicion pos = new Posicion(arrayRatas.get(i).getX(), alto - 1 - arrayRatas.get(i).getY());
+                                //EntornoLaberinto ent = getEntorno(arrayRatas.get(i).getX(), alto - 1 - arrayRatas.get(i).getY());
+                                //nuevosEntornos.get(z).setNuevaPosicion(pos);
+                                //nuevosEntornos.get(z).setEntorno(ent);
+                            }
+                        }
+                    }
                 }
             }
         }
