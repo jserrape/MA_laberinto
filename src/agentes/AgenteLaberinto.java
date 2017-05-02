@@ -425,8 +425,11 @@ public class AgenteLaberinto extends Agent {
                 acceptances.set(i, msgg);
             }
         }
+        
+        
     }
 
+    //myAgent.addBehaviour(new TareaInicioRonda(partida.getPartida().getIdPartida()));
     public class TareaBuscarAgentes extends TickerBehaviour {
 
         //Se buscarán agentes consola y operación

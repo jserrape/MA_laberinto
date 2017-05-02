@@ -269,20 +269,46 @@ public class AgenteRaton extends Agent {
             //////////////////
             /////////////////   AQUI DECIDO EL MOVIMIENTO QUE VOY A HACER
             ////////////////
-            ArrayList<String> movimientos = new ArrayList();
-            if(entornoActual.getNorte()==OntologiaLaberinto.LIBRE){
-                movimientos.add("Subir");
+            String puedo = "Puedo:";
+            ArrayList<String> mov = new ArrayList();
+            if (entornoActual.getNorte().equals(OntologiaLaberinto.LIBRE)) {
+                mov.add("Subir");
+                puedo += " Subir";
             }
-            if(entornoActual.getSur()==OntologiaLaberinto.LIBRE){
-                movimientos.add("Bajar");
+            if (entornoActual.getSur().equals(OntologiaLaberinto.LIBRE)) {
+                mov.add("Bajar");
+                puedo += " Bajar";
             }
-            if(entornoActual.getOeste()==OntologiaLaberinto.LIBRE){
-                movimientos.add("Izquierda");
+            if (entornoActual.getOeste().equals(OntologiaLaberinto.LIBRE)) {
+                mov.add("Izquierda");
+                puedo += " Izquierda";
             }
-            if(entornoActual.getEste()==OntologiaLaberinto.LIBRE){
-                movimientos.add("Derecha");
+            if (entornoActual.getEste().equals(OntologiaLaberinto.LIBRE)) {
+                mov.add("Derecha");
+                puedo += " Derecha";
             }
-            //entornoActual
+            mensajesPendientes.add(puedo);
+            int n = (int) (mov.size() * Math.random());
+            String acc = mov.get(n);
+            int x = posicion.getCoorX();
+            int y = posicion.getCoorY();
+            mensajesPendientes.add("Mi posicion es la " + posicion.toString());
+            switch (acc) {
+                case "Subir":
+                    posicion.setCoorY(y + 1);
+                    break;
+                case "Bajar":
+                    posicion.setCoorY(y - 1);
+                    break;
+                case "Izquierda":
+                    posicion.setCoorX(x - 1);
+                    break;
+                case "Derecha":
+                    posicion.setCoorX(x + 1);
+                    break;
+            }
+            mensajesPendientes.add("Me muevo a la posicion " + posicion.toString());
+            mensajesPendientes.add("Selecciono " + acc);
 
             Jugada jugada = new Jugada(OntologiaLaberinto.MOVIMIENTO, posicion);
             JugadaEntregada jugEntregada = new JugadaEntregada(p, jugador, jugada);
@@ -307,7 +333,6 @@ public class AgenteRaton extends Agent {
             mensajesPendientes.add("Me ha llegado un ResultadoJugada");
             ResultadoJugada resultado = null;
 
-            System.out.println(accept);
             try {
                 resultado = (ResultadoJugada) manager.extractContent(accept);
             } catch (Codec.CodecException | OntologyException ex) {
@@ -315,9 +340,13 @@ public class AgenteRaton extends Agent {
             }
 
             entornoActual = resultado.getEntorno();
+            posicion = resultado.getNuevaPosicion();
+            mensajesPendientes.add("Me confirman que stoy en la posicion " + posicion.toString());
             //mensajesPendientes.add(resultado.toString());
 
-            return null;
+            ACLMessage inform = accept.createReply();
+            inform.setPerformative(ACLMessage.INFORM);
+            return inform;
         }
 
         @Override

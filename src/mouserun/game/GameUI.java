@@ -6,6 +6,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import juegos.elementos.Partida;
 import juegos.elementos.Posicion;
+import laberinto.OntologiaLaberinto;
 import laberinto.elementos.EntornoLaberinto;
 import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.ResultadoJugada;
@@ -100,31 +101,17 @@ public class GameUI extends JFrame {
         nuevosEntornos = new ArrayList();
         for(int i=0;i<jugadas.size();i++){
             for(int j=0;j<arrayRatas.size();j++){
-                System.out.println(jugadas.get(i).getJugador().getNombre());
-                System.out.println(arrayRatas.get(j).getJLabel().getText());
-                System.out.println("-");
                 if(jugadas.get(i).getJugador().getNombre().equals(arrayRatas.get(j).getJLabel().getText())){
                     int x=arrayRatas.get(j).getX();
                     int y=arrayRatas.get(j).getY();
-                    String accion=jugadas.get(i).getAccion().getJugada();
-                    switch (accion) {
-                        case "Subir":
-                            arrayRatas.get(j).setPosicion(x, y-1);
-                            break;
-                        case "Bajar":
-                            arrayRatas.get(j).setPosicion(x, y+1);
-                            break;
-                        case "Izquierda":
-                            arrayRatas.get(j).setPosicion(x-1, y);
-                            break;
-                        case "Derecha":
-                            arrayRatas.get(j).setPosicion(x+1, y);
-                            break;
-                        case "Cagar":
-                            
-                            break;
+                    if(jugadas.get(i).getAccion().getJugada().equals(OntologiaLaberinto.MOVIMIENTO)){
+                        arrayRatas.get(j).setPosicion(jugadas.get(i).getAccion().getPosicion().getCoorX(), alto-1-jugadas.get(i).getAccion().getPosicion().getCoorY());
+                        System.out.println(jugadas.get(i).getAccion().getPosicion().toString());
+                    }else{
+                    
                     }
-                    EntornoLaberinto ent=getEntorno(arrayRatas.get(j).getX(),alto-1-arrayRatas.get(j).getY());
+                    System.out.println(arrayRatas.get(j).getX()+"   "+(arrayRatas.get(j).getY()));
+                    EntornoLaberinto ent=getEntorno(arrayRatas.get(j).getX(),arrayRatas.get(j).getY());
                     Posicion pos=new Posicion(arrayRatas.get(j).getX(),alto-1-arrayRatas.get(j).getY());
                     ResultadoJugada resultadoJug=new ResultadoJugada(part,ent,pos);
                     nuevosEntornos.add(resultadoJug);
