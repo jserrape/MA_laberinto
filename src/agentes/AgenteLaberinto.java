@@ -322,7 +322,7 @@ public class AgenteLaberinto extends Agent {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            myAgent.addBehaviour(new TareaInicioRonda(this.getAgent(), 1000, partida.getPartida().getIdPartida()));
+            myAgent.addBehaviour(new TareaInicioRonda(this.getAgent(), 500, partida.getPartida().getIdPartida())); //<-----------------------------------------
         }
 
         @Override
@@ -412,12 +412,10 @@ public class AgenteLaberinto extends Agent {
             List<ResultadoJugada> resultados = laberintoGUI.hacerJugadas(jugadas, partidaActual);
             mensajesPendientes.add("Se han generado " + resultados.size() + " resultados de las " + jugadas.size() + " jugadas.");
 
-            ACLMessage resp;
             ACLMessage msgg;
             for (int i = 0; i < jugadas.size(); i++) {
                 msgg = (ACLMessage) acceptances.get(i);
 
-                System.out.println(resultados.get(i).toString());
                 try {
                     manager.fillContent(msgg, resultados.get(i));
                 } catch (Codec.CodecException | OntologyException ex) {
@@ -458,7 +456,7 @@ public class AgenteLaberinto extends Agent {
                         agentesConsola[i] = result[i].getName();
                     }
                 } else {
-                    System.out.println("No se han encontrado consolas:");
+                    //System.out.println("No se han encontrado consolas:");
                     agentesConsola = null;
                 }
             } catch (FIPAException fe) {
@@ -475,15 +473,15 @@ public class AgenteLaberinto extends Agent {
                 myGUI.setNumeroRatas(String.valueOf(result.length));
                 if (result.length >= 1) {
                     myGUI.activarBoton();
-                    System.out.println("Se han encontrado las siguientes agentes rata:");
+                    //System.out.println("Se han encontrado las siguientes agentes rata:");
                     agentesRaton = new AID[result.length];
                     for (int i = 0; i < result.length; ++i) {
                         agentesRaton[i] = result[i].getName();
-                        System.out.println(agentesRaton[i].getName());
+                        //System.out.println(agentesRaton[i].getName());
                     }
                 } else {
                     myGUI.desactivarBoton();
-                    System.out.println("No se han encontrado ratas");
+                    //System.out.println("No se han encontrado ratas");
                     agentesRaton = null;
                 }
             } catch (FIPAException fe) {
@@ -503,15 +501,15 @@ public class AgenteLaberinto extends Agent {
             ACLMessage mensaje;
             if (agentesConsola != null) {
                 if (!mensajesPendientes.isEmpty()) {
-                    System.out.println("Empieza el envío");
+                    //System.out.println("Empieza el envío");
                     mensaje = new ACLMessage(ACLMessage.INFORM);
                     mensaje.setSender(myAgent.getAID());
                     mensaje.addReceiver(agentesConsola[0]);
                     mensaje.setContent(mensajesPendientes.remove(0));
 
                     // 
-                    System.out.println("Enviado a: " + agentesConsola[0].getName());
-                    System.out.println("Contenido: " + mensaje.getContent());
+                    //System.out.println("Enviado a: " + agentesConsola[0].getName());
+                    //System.out.println("Contenido: " + mensaje.getContent());
 
                     myAgent.send(mensaje);
                 } else {

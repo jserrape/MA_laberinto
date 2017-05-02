@@ -382,7 +382,7 @@ public class AgenteRaton extends Agent {
                         agentesConsola[i] = result[i].getName();
                     }
                 } else {
-                    System.out.println("No se han encontrado consolas:");
+                    //System.out.println("No se han encontrado consolas:");
                     agentesConsola = null;
                 }
             } catch (FIPAException fe) {
@@ -402,14 +402,14 @@ public class AgenteRaton extends Agent {
             ACLMessage mensaje;
             if (agentesConsola != null) {
                 if (!mensajesPendientes.isEmpty()) {
-                    System.out.println("Empieza el envío");
+                    //System.out.println("Empieza el envío");
                     mensaje = new ACLMessage(ACLMessage.INFORM);
                     mensaje.setSender(myAgent.getAID());
                     mensaje.addReceiver(agentesConsola[0]);
                     mensaje.setContent(mensajesPendientes.remove(0));
 
-                    System.out.println("Enviado a: " + agentesConsola[0].getName());
-                    System.out.println("Contenido: " + mensaje.getContent());
+                    //System.out.println("Enviado a: " + agentesConsola[0].getName());
+                    //System.out.println("Contenido: " + mensaje.getContent());
 
                     myAgent.send(mensaje);
                 } else {

@@ -106,12 +106,10 @@ public class GameUI extends JFrame {
                     int y=arrayRatas.get(j).getY();
                     if(jugadas.get(i).getAccion().getJugada().equals(OntologiaLaberinto.MOVIMIENTO)){
                         arrayRatas.get(j).setPosicion(jugadas.get(i).getAccion().getPosicion().getCoorX(), alto-1-jugadas.get(i).getAccion().getPosicion().getCoorY());
-                        System.out.println(jugadas.get(i).getAccion().getPosicion().toString());
                     }else{
                     
                     }
-                    System.out.println(arrayRatas.get(j).getX()+"   "+(arrayRatas.get(j).getY()));
-                    EntornoLaberinto ent=getEntorno(arrayRatas.get(j).getX(),arrayRatas.get(j).getY());
+                    EntornoLaberinto ent=getEntorno(arrayRatas.get(j).getX(),alto-1-arrayRatas.get(j).getY());
                     Posicion pos=new Posicion(arrayRatas.get(j).getX(),alto-1-arrayRatas.get(j).getY());
                     ResultadoJugada resultadoJug=new ResultadoJugada(part,ent,pos);
                     nuevosEntornos.add(resultadoJug);
