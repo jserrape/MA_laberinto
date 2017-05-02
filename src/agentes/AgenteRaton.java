@@ -269,7 +269,22 @@ public class AgenteRaton extends Agent {
             //////////////////
             /////////////////   AQUI DECIDO EL MOVIMIENTO QUE VOY A HACER
             ////////////////
-            Jugada jugada = new Jugada("Subir", posicion);
+            ArrayList<String> movimientos = new ArrayList();
+            if(entornoActual.getNorte()==OntologiaLaberinto.LIBRE){
+                movimientos.add("Subir");
+            }
+            if(entornoActual.getSur()==OntologiaLaberinto.LIBRE){
+                movimientos.add("Bajar");
+            }
+            if(entornoActual.getOeste()==OntologiaLaberinto.LIBRE){
+                movimientos.add("Izquierda");
+            }
+            if(entornoActual.getEste()==OntologiaLaberinto.LIBRE){
+                movimientos.add("Derecha");
+            }
+            //entornoActual
+
+            Jugada jugada = new Jugada(OntologiaLaberinto.MOVIMIENTO, posicion);
             JugadaEntregada jugEntregada = new JugadaEntregada(p, jugador, jugada);
 
             ACLMessage respuesta = cfp.createReply();
@@ -294,13 +309,14 @@ public class AgenteRaton extends Agent {
 
             System.out.println(accept);
             try {
-                resultado = (ResultadoJugada ) manager.extractContent(accept);
+                resultado = (ResultadoJugada) manager.extractContent(accept);
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
+            entornoActual = resultado.getEntorno();
             //mensajesPendientes.add(resultado.toString());
-            
+
             return null;
         }
 
