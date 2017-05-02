@@ -20,7 +20,7 @@ import util.ResultadoRaton;
 public class GameUI extends JFrame {
 
     private AgenteLaberinto agente;
-    
+
     private Maze maze;
     private int GRID_LENGTH = 30;
     private ImagedPanel[][] mazePanels;
@@ -32,7 +32,7 @@ public class GameUI extends JFrame {
 
     private int ancho;
     private int alto;
-    
+
     private int maxQuesos;
 
     /**
@@ -46,15 +46,15 @@ public class GameUI extends JFrame {
      * assets are missing.
      * @throws java.lang.InterruptedException
      */
-    public GameUI(int ancho, int alto,int mQuesos,AgenteLaberinto agent) throws IOException, InterruptedException {
+    public GameUI(int ancho, int alto, int mQuesos, AgenteLaberinto agent) throws IOException, InterruptedException {
         super("Agente raton de UJAtaco");
         GRID_LENGTH = 30;
 
         this.ancho = ancho;
         this.alto = alto;
-        
-        this.agente=agent;
-        this.maxQuesos=mQuesos;
+
+        this.agente = agent;
+        this.maxQuesos = mQuesos;
 
         this.mazePanels = new ImagedPanel[ancho][alto];
         this.maze = new Maze(ancho, alto);
@@ -156,11 +156,26 @@ public class GameUI extends JFrame {
                 int x = (int) (Math.random() * alto);
                 int y = (int) (Math.random() * ancho);
                 quesito.setPosicion(x, alto - 1 - y);
-                if(arrayRatas.get(j).getQuesos()==this.maxQuesos){
-                    this.agente.lograrObjetivoQuesos();
+                if (arrayRatas.get(j).getQuesos() == this.maxQuesos) {
+                    mostrarFIN();
                 }
             }
         }
+    }
+
+    public void mostrarFIN() {
+        this.agente.lograrObjetivoQuesos();
+        JLabel countDownLabel = new JLabel("");
+        countDownLabel.setForeground(Color.WHITE);
+        countDownLabel.setFont(new Font("San Serif", Font.PLAIN, 100));
+        container.add(countDownLabel);
+        countDownLabel.setText("Final");
+        Dimension preferred = countDownLabel.getPreferredSize();
+        int yy = (int) ((container.getHeight() - preferred.getHeight()) / 2);
+        int xx = (int) ((container.getWidth() - preferred.getWidth()) / 2);
+
+        countDownLabel.setBounds(xx, yy, (int) preferred.getWidth(), (int) preferred.getHeight());
+        container.moveToFront(countDownLabel);
     }
 
     /**

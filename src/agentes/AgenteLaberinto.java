@@ -382,6 +382,7 @@ public class AgenteLaberinto extends Agent {
                 mensajesPendientes.add(mensaj);
                 addBehaviour(new TareaJugarPartida(this.myAgent, msg));
             }else{
+                laberintoGUI.mostrarFIN();
                 this.stop();
             }
         }
@@ -545,6 +546,7 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected void onTick() {
+            laberintoGUI.mostrarFIN();
             tarea.stop();
             this.stop();
         }
