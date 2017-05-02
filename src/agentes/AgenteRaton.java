@@ -31,7 +31,10 @@ import jade.proto.ContractNetResponder;
 import jade.proto.ProposeResponder;
 import jade.proto.SubscriptionInitiator;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import juegos.elementos.DetalleInforme;
@@ -75,10 +78,38 @@ public class AgenteRaton extends Agent {
     //Atributos para control del juego
     private boolean jugando;
 
+    //Elementos para el movimiento
+    //Casillas visitadas durante la aparicion de este queso
+    private Map<Integer, Posicion> casillasVisitadasQueso;
+    //Casillas visitadas en toda la partida
+    private Map<Integer, Posicion> casillasVisitadasJuego;
+    //Pila para volver hacia atras
+    private Stack<Integer> pila;
+    //Clave del raton de la poscion actual
+    private int claveActual;
+    //Clave del posible movimiento a realizar
+    private int auxClave;
+    //Clave de la posicion del queso
+    private int claveQueso;
+    //Contador de pasos para colocar bombas
+    private int bombas;
+    //Contador de bambas que le quedan por colocar
+    private int bombasRestantes;
+    //Variable para comprobar si reiniciar las estructuras destinadas a la busqueda del queso
+    private boolean comprobarPosicion;
+
     @Override
     protected void setup() {
         mensajesPendientes = new ArrayList();
         jugando = false;
+
+        casillasVisitadasQueso = new HashMap<>();
+        casillasVisitadasJuego = new HashMap<>();
+        pila = new Stack<>();
+        claveQueso = 0;
+        bombas = 0;
+        bombasRestantes = 5;
+        comprobarPosicion = false;
 
         DFAgentDescription dfd = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
@@ -266,49 +297,8 @@ public class AgenteRaton extends Agent {
             }
             mensajesPendientes.add("Me ha llegado una peticion de ronda para la partida con id=" + p.getIdPartida());
 
-            //////////////////
-            /////////////////   AQUI DECIDO EL MOVIMIENTO QUE VOY A HACER
-            ////////////////
-            String puedo = "Puedo:";
-            ArrayList<String> mov = new ArrayList();
-            if (entornoActual.getNorte().equals(OntologiaLaberinto.LIBRE)) {
-                mov.add("Subir");
-                puedo += " Subir";
-            }
-            if (entornoActual.getSur().equals(OntologiaLaberinto.LIBRE)) {
-                mov.add("Bajar");
-                puedo += " Bajar";
-            }
-            if (entornoActual.getOeste().equals(OntologiaLaberinto.LIBRE)) {
-                mov.add("Izquierda");
-                puedo += " Izquierda";
-            }
-            if (entornoActual.getEste().equals(OntologiaLaberinto.LIBRE)) {
-                mov.add("Derecha");
-                puedo += " Derecha";
-            }
-            mensajesPendientes.add(puedo);
-            int n = (int) (mov.size() * Math.random());
-            String acc = mov.get(n);
-            int x = posicion.getCoorX();
-            int y = posicion.getCoorY();
-            mensajesPendientes.add("Mi posicion es la " + posicion.toString());
-            switch (acc) {
-                case "Subir":
-                    posicion.setCoorY(y + 1);
-                    break;
-                case "Bajar":
-                    posicion.setCoorY(y - 1);
-                    break;
-                case "Izquierda":
-                    posicion.setCoorX(x - 1);
-                    break;
-                case "Derecha":
-                    posicion.setCoorX(x + 1);
-                    break;
-            }
-            mensajesPendientes.add("Me muevo a la posicion " + posicion.toString());
-            mensajesPendientes.add("Selecciono " + acc);
+            moverse();
+
 
             Jugada jugada = new Jugada(OntologiaLaberinto.MOVIMIENTO, posicion);
             JugadaEntregada jugEntregada = new JugadaEntregada(p, jugador, jugada);
@@ -330,7 +320,6 @@ public class AgenteRaton extends Agent {
 
         @Override
         protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
-            mensajesPendientes.add("Me ha llegado un ResultadoJugada");
             ResultadoJugada resultado = null;
 
             try {
@@ -341,7 +330,7 @@ public class AgenteRaton extends Agent {
 
             entornoActual = resultado.getEntorno();
             posicion = resultado.getNuevaPosicion();
-            mensajesPendientes.add("Me confirman que stoy en la posicion " + posicion.toString());
+            mensajesPendientes.add("Me confirman que estoy en la posicion " + posicion.toString());
             //mensajesPendientes.add(resultado.toString());
 
             ACLMessage inform = accept.createReply();
@@ -410,7 +399,6 @@ public class AgenteRaton extends Agent {
 
                     //System.out.println("Enviado a: " + agentesConsola[0].getName());
                     //System.out.println("Contenido: " + mensaje.getContent());
-
                     myAgent.send(mensaje);
                 } else {
                     mensaje = new ACLMessage(ACLMessage.INFORM);
@@ -419,6 +407,127 @@ public class AgenteRaton extends Agent {
                     mensaje.setContent("No hay mensajes pendientes");
                 }
             }
+        }
+    }
+
+    private void moverse() {
+        claveActual = funcionDeDispersion(posicion.getCoorX(), posicion.getCoorY(), 0);
+        claveQueso = funcionDeDispersion(5, 5, 0);
+
+        //Reinicio de las estructuras en caso de haber muerto
+        //
+        //
+        //Colocacion de las bombas
+        //
+        //
+        if (casillasVisitadasQueso.get(claveActual) == null) {
+            casillasVisitadasQueso.put(claveActual, new Posicion(posicion.getCoorX(), posicion.getCoorY()));
+        }
+
+        //Comprobacion de que la casilla no esta en la memoria del raton
+        if (casillasVisitadasJuego.get(claveActual) == null) {
+            casillasVisitadasJuego.put(claveActual, new Posicion(posicion.getCoorX(), posicion.getCoorY()));
+        }
+
+        //Elegir un movimiento con prioridad
+        for (int i = 1; i < 5; i++) {
+            auxClave = funcionDeDispersion(posicion.getCoorX(), posicion.getCoorY(), i);
+            if (meAcerco(i) && movimientoValido(i) && casillasVisitadasQueso.get(auxClave) == null) {
+                pila.add(retrocede(i));
+                aplicar(i);
+                return;
+            }
+        }
+
+        //Elegir un movimiento sin prioridad
+        for (int i = 1; i < 5; i++) {
+            auxClave = funcionDeDispersion(posicion.getCoorX(), posicion.getCoorY(), i);
+            if (movimientoValido(i) && casillasVisitadasQueso.get(auxClave) == null) {
+                pila.add(retrocede(i));
+                aplicar(i);
+                return;
+            }
+        }
+
+        aplicar(pila.pop());
+    }
+
+    public int funcionDeDispersion(int x, int y, int direccion) {
+        switch (direccion) {
+            case 1: //Casilla de arriba
+                y = y + 1;
+                break;
+            case 2: //Casilla de abajo
+                y = y - 1;
+                break;
+            case 3: //Casilla de la izquierda
+                x = x - 1;
+                break;
+            case 4: //Casilla de la derecha
+                x = x + 1;
+                break;
+        }
+        return (y << 3) + (x << 2) + (y << 5) + (x << 7);
+    }
+
+    public boolean meAcerco(int direccion) { //<---- cambiar aqui
+        switch (direccion) {
+            case 1: //Arriba
+                return 5 > posicion.getCoorY();
+            case 2: //Abajo
+                return 5 < posicion.getCoorY();
+            case 3: //Izquierda
+                return 5 < posicion.getCoorX();
+            case 4: //Derecha
+                return 5 > posicion.getCoorX();
+        }
+        return true;
+    }
+
+    public boolean movimientoValido(int direccion) {
+        switch (direccion) {
+            case 1: //Arriba
+                return entornoActual.getNorte().equals(OntologiaLaberinto.LIBRE);
+            case 2: //Abajo
+                return entornoActual.getSur().equals(OntologiaLaberinto.LIBRE);
+            case 3: //Izquierda
+                return entornoActual.getOeste().equals(OntologiaLaberinto.LIBRE);
+            case 4: //Derecha
+                return entornoActual.getEste().equals(OntologiaLaberinto.LIBRE);
+        }
+        return false;
+    }
+
+    public int retrocede(int movimiento) {
+        switch (movimiento) {
+            case 1: //Arriba
+                return 2;
+            case 2: //Abajo
+                return 1;
+            case 3: //Izquierda
+                return 4;
+            case 4: //Derecha
+                return 3;
+        }
+        return 0;
+    }
+
+    public void aplicar(int m) {
+        int x = posicion.getCoorX();
+        int y = posicion.getCoorY();
+        switch (m) {
+            case 1:
+                posicion.setCoorY(y + 1);
+                break;
+            case 2:
+                posicion.setCoorY(y - 1);
+                break;
+            case 3:
+                posicion.setCoorX(x - 1);
+                break;
+            case 4:
+                posicion.setCoorX(x + 1);
+                break;
         }
     }
 
