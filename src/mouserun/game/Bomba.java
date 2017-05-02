@@ -1,6 +1,8 @@
 package mouserun.game;
 
+import java.awt.Color;
 import java.io.IOException;
+import javax.swing.JLabel;
 
 /**
  *
@@ -12,7 +14,7 @@ public class Bomba {
     private final int y;
     private final ImagedPanel panel;
     private final int GRID_LENGTH = 30;
-    private final String creador;
+    private JLabel label;
 
     /**
      * Constructor parametrizado del la clase Bomba
@@ -24,10 +26,12 @@ public class Bomba {
     public Bomba(int _x, int _y, String _creador) throws IOException {
         this.x = _x;
         this.y = _y;
-        this.creador = _creador;
         panel = new ImagedPanel("assets/bomb.png", GRID_LENGTH-10, GRID_LENGTH-10);
         panel.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
         panel.setOpaque(false);
+        label = new JLabel(_creador);
+        label.setForeground(Color.RED);
+        label.setBounds(x * GRID_LENGTH, y * GRID_LENGTH - 5, GRID_LENGTH * 2, 20);
     }
 
     /**
@@ -44,7 +48,28 @@ public class Bomba {
      * @return true si es suya, false en caso contrario
      */
     public boolean getEsDe(String posibleCreador) {
-        return (posibleCreador == null ? creador == null : posibleCreador.equals(creador));
+        return (posibleCreador == null ? getLabel().getText() == null : posibleCreador.equals(getLabel().getText()));
+    }
+    
+        /**
+     * @return the x
+     */
+    public int getX() {
+        return x;
+    }
+
+    /**
+     * @return the y
+     */
+    public int getY() {
+        return y;
+    }
+
+    /**
+     * @return the label
+     */
+    public JLabel getLabel() {
+        return label;
     }
 
 }
