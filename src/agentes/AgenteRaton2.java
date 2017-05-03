@@ -407,7 +407,7 @@ public class AgenteRaton2 extends Agent {
         //
         //Colocacion de las bombas
         bombas++;
-        if (bombas == 60 && bombasRestantes != 0) {
+        if (bombas == 100 && bombasRestantes != 0) {
             bombas = 0;
             --bombasRestantes;
             //return false;

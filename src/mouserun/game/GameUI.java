@@ -140,12 +140,10 @@ public class GameUI extends JFrame {
                     Posicion pos = new Posicion(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
                     ResultadoJugada resultadoJug = new ResultadoJugada(part, ent, pos);
                     nuevosEntornos.add(resultadoJug);
-
                 }
             }
         }
         comprobarQueso();
-        //comprobarBombas(nuevosEntornos, jugadas);
         return nuevosEntornos;
     }
 

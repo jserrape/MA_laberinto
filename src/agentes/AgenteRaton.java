@@ -76,7 +76,7 @@ public class AgenteRaton extends Agent {
     private ContentManager manager = (ContentManager) getContentManager();
 
     //Atributos para control del juego
-    private boolean jugando;
+    private boolean muerto;
 
     //Elementos para el movimiento
     //Casillas visitadas durante la aparicion de este queso
@@ -99,7 +99,7 @@ public class AgenteRaton extends Agent {
     @Override
     protected void setup() {
         mensajesPendientes = new ArrayList();
-        jugando = false;
+        muerto = false;
 
         casillasVisitadasQueso = new HashMap<>();
         pila = new Stack<>();
@@ -308,7 +308,7 @@ public class AgenteRaton extends Agent {
             entornoActual = resultado.getEntorno();
             Posicion posicionAux = resultado.getNuevaPosicion();
             if (posicionAux.getCoorX() != posicion.getCoorX() || posicionAux.getCoorY() != posicion.getCoorY()) {
-                reinicio();
+                muerto=true;
             }
             posicion = posicionAux;
             mensajesPendientes.add("Me confirman que estoy en la posicion " + posicion.toString());
@@ -398,12 +398,14 @@ public class AgenteRaton extends Agent {
         claveActual = funcionDeDispersion(posicion.getCoorX(), posicion.getCoorY(), 0);
         claveQueso = funcionDeDispersion(5, 5, 0);
 
-        //Reinicio de las estructuras en caso de haber muerto
-        //
-        //
+        if(muerto){
+            muerto=false;
+            reinicio();
+        }
+        
         //Colocacion de las bombas
         bombas++;
-        if (bombas == 20 && bombasRestantes != 0) {
+        if (bombas == 120 && bombasRestantes != 0) {
             bombas = 0;
             --bombasRestantes;
             return false;
