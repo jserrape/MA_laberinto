@@ -306,9 +306,12 @@ public class AgenteRaton extends Agent {
             }
 
             entornoActual = resultado.getEntorno();
-            posicion = resultado.getNuevaPosicion();
+            Posicion posicionAux = resultado.getNuevaPosicion();
+            if (posicionAux.getCoorX() != posicion.getCoorX() || posicionAux.getCoorY() != posicion.getCoorY()) {
+                reinicio();
+            }
+            posicion = posicionAux;
             mensajesPendientes.add("Me confirman que estoy en la posicion " + posicion.toString());
-            //mensajesPendientes.add(resultado.toString());
 
             ACLMessage inform = accept.createReply();
             inform.setPerformative(ACLMessage.INFORM);

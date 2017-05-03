@@ -227,7 +227,7 @@ public class AgenteRaton2 extends Agent {
             //AQUI TENGO EL TABLERO y LA INFO DE LA PARTIDA
             partida = proposicionPartida.getPartida();
             tablero = proposicionPartida.getLaberinto();
-            bombasRestantes=tablero.getNumTrampasActivas();
+            bombasRestantes = tablero.getNumTrampasActivas();
             posicion = tablero.getPosicionInicio();
             entornoActual = tablero.getEntornoInicio();
             Jugador j = new Jugador(this.myAgent.getName(), this.myAgent.getAID());
@@ -272,9 +272,9 @@ public class AgenteRaton2 extends Agent {
             mensajesPendientes.add("Me ha llegado una peticion de ronda para la partida con id=" + p.getIdPartida());
 
             Jugada jugada;
-            if(moverse()){
+            if (moverse()) {
                 jugada = new Jugada(OntologiaLaberinto.MOVIMIENTO, posicion);
-            }else{
+            } else {
                 jugada = new Jugada(OntologiaLaberinto.TRAMPA, posicion);
             }
 
@@ -306,7 +306,14 @@ public class AgenteRaton2 extends Agent {
             }
 
             entornoActual = resultado.getEntorno();
-            posicion = resultado.getNuevaPosicion();
+            Posicion posicionAux = resultado.getNuevaPosicion();
+            if (posicionAux.getCoorX() != posicion.getCoorX() || posicionAux.getCoorY() != posicion.getCoorY()) {
+                reinicio();
+            }
+            posicion = posicionAux;
+            System.out.println("Estoy en:");
+            System.out.println(entornoActual.toString());
+            System.out.println(posicion.toString());
             mensajesPendientes.add("Me confirman que estoy en la posicion " + posicion.toString());
             //mensajesPendientes.add(resultado.toString());
 
@@ -388,10 +395,10 @@ public class AgenteRaton2 extends Agent {
     }
 
     /**
-     * 
+     *
      * @return true si no pongo bomba, false si la pongo
      */
-    private boolean  moverse() {
+    private boolean moverse() {
         claveActual = funcionDeDispersion(posicion.getCoorX(), posicion.getCoorY(), 0);
         claveQueso = funcionDeDispersion(5, 5, 0);
 

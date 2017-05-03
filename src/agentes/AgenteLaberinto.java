@@ -1,5 +1,3 @@
-//20000 milisegundos no son 2 segundos
-//Hay que hacer la transformacion de la x, para que corresponda a la del laberinto
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -325,7 +323,7 @@ public class AgenteLaberinto extends Agent {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 200, partida.getPartida().getIdPartida());//<-----------------------------------------200
+            TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 200, partida.getPartida().getIdPartida());//<--------------------------------------------200
             myAgent.addBehaviour(new acabarPartida(this.getAgent(), tiempo * 1000, tarea));
             myAgent.addBehaviour(tarea);
         }

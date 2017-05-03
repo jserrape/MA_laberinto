@@ -112,9 +112,11 @@ public class GameUI extends JFrame {
     public java.util.List<ResultadoJugada> hacerJugadas(java.util.List<JugadaEntregada> jugadas, Partida part) throws IOException {
         java.util.List<ResultadoJugada> nuevosEntornos;
         nuevosEntornos = new ArrayList();
+        boolean muerto;
         for (int i = 0; i < jugadas.size(); i++) {
             for (int j = 0; j < arrayRatas.size(); j++) {
                 if (jugadas.get(i).getJugador().getNombre().equals(arrayRatas.get(j).getJLabel().getText())) {
+                    muerto = false;
                     int x = arrayRatas.get(j).getX();
                     int y = arrayRatas.get(j).getY();
                     if (jugadas.get(i).getAccion().getJugada().equals(OntologiaLaberinto.MOVIMIENTO)) {
@@ -122,15 +124,25 @@ public class GameUI extends JFrame {
                     } else {
                         nuevaTrampa(x, y, jugadas.get(i).getJugador().getNombre());
                     }
+                    for (int z = 0; z < arrayBombas.size(); z++) {
+                        if (!arrayBombas.get(z).getLabel().getText().equals(arrayRatas.get(j).getJLabel().getText())) {
+                            if (arrayBombas.get(z).getX() == arrayRatas.get(j).getX() && arrayBombas.get(z).getY() == arrayRatas.get(j).getY()) { //Esta rata debe morir
+                                int xx = (int) (Math.random() * alto);
+                                int yy = (int) (Math.random() * ancho);
+                                arrayRatas.get(j).setPosicion(xx, yy);
+                            }
+                        }
+                    }
                     EntornoLaberinto ent = getEntorno(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
                     Posicion pos = new Posicion(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
                     ResultadoJugada resultadoJug = new ResultadoJugada(part, ent, pos);
                     nuevosEntornos.add(resultadoJug);
+
                 }
             }
         }
         comprobarQueso();
-        comprobarBombas(nuevosEntornos, jugadas);
+        //comprobarBombas(nuevosEntornos, jugadas);
         return nuevosEntornos;
     }
 
