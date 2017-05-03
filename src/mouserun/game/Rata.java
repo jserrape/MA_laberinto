@@ -22,6 +22,8 @@ public class Rata {
     private JLabel label;
     private int GRID_LENGTH = 30;
     
+    private int bombasColocadas;
+    
     private int quesos;
 
     private String izquierdaImg;
@@ -46,6 +48,7 @@ public class Rata {
         this.nombre = _nombre;
         this.x = _x;
         this.y = _y;
+        this.bombasColocadas=0;
         panel = new ImagedPanel(derechaImg, GRID_LENGTH-5, GRID_LENGTH-5);
         panel.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
         panel.setOpaque(false);
@@ -56,6 +59,10 @@ public class Rata {
         this.quesos=0;
     }
 
+    public void incrementaBombasColocadas(){
+        ++bombasColocadas;
+    }
+    
     public int getQuesos(){
         return this.quesos;
     }

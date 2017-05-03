@@ -1,5 +1,6 @@
 package mouserun.game;
 
+import GUI.ClasificacionJframe;
 import agentes.AgenteLaberinto;
 import java.io.*;
 import javax.swing.*;
@@ -26,6 +27,8 @@ public class GameUI extends JFrame {
     private ImagedPanel[][] mazePanels;
     private JLayeredPane container;
 
+    private ClasificacionJframe clasificacionGUI;
+
     //Ratas y queso
     private Queso quesito;
     private ArrayList<Rata> arrayRatas;
@@ -43,11 +46,13 @@ public class GameUI extends JFrame {
      * @param alto The height of the user interface.
      * @param mQuesos
      * @param agent
+     * @param tiempo
+     * @param bombasM
      * @throws IOException An IOException can occur when the required game
      * assets are missing.
      * @throws java.lang.InterruptedException
      */
-    public GameUI(int ancho, int alto, int mQuesos, AgenteLaberinto agent) throws IOException, InterruptedException {
+    public GameUI(int ancho, int alto, int mQuesos, AgenteLaberinto agent,int tiempo,int bombasM) throws IOException, InterruptedException {
         super("Agente raton de UJAtaco");
         GRID_LENGTH = 30;
 
@@ -61,6 +66,8 @@ public class GameUI extends JFrame {
 
         this.mazePanels = new ImagedPanel[ancho][alto];
         this.maze = new Maze(ancho, alto);
+
+        clasificacionGUI = new ClasificacionJframe(ancho,alto,mQuesos,tiempo,bombasM);
 
         initialiseUI();
     }
@@ -130,6 +137,7 @@ public class GameUI extends JFrame {
                                 int xx = (int) (Math.random() * alto);
                                 int yy = (int) (Math.random() * ancho);
                                 arrayRatas.get(j).setPosicion(xx, yy);
+                                arrayRatas.get(j).incrementaBombasColocadas();
                                 arrayBombas.get(z).explotar();
                                 arrayBombas.remove(z);
                                 --z;

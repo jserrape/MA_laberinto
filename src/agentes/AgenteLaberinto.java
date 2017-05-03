@@ -76,7 +76,7 @@ public class AgenteLaberinto extends Agent {
     private GameUI laberintoGUI;
     public int ancho = 10;
     public int alto = 10;
-    public int tiempo = 120000;
+    public int tiempo = 60;
     public int quesosMax = 5;
     public int maxTrampas = 3;
     private Posicion posicionInicio;
@@ -163,7 +163,7 @@ public class AgenteLaberinto extends Agent {
         this.tiempo = t;
         this.quesosMax = mq;
         this.maxTrampas = mt;
-        laberintoGUI = new GameUI(ancho, alto,mq,this);
+        laberintoGUI = new GameUI(ancho, alto,mq,this,tiempo,maxTrampas);
         laberintoGUI.setVisible(true);
         addBehaviour(new TareaNuevaPartida());
     }
