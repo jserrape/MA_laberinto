@@ -31,7 +31,15 @@ public class ClasificacionJframe extends javax.swing.JFrame {
 
     public void crearClarificacion(ArrayList<Rata> arrayRatas){
         this.setVisible(true);
+        this.nombreJArea.setText(null);
+        this.quesosJArea.setText(null);
+        this.bombasJArea.setText(null);
         
+        for(int i=0;i<arrayRatas.size();i++){
+            nombreJArea.append(arrayRatas.get(i).getJLabel().getText()+"\n");
+            quesosJArea.append(arrayRatas.get(i).getQuesos()+"\n");
+            bombasJArea.append(arrayRatas.get(i).getBombasColocadas()+"\n");
+        }
     }
     
     /**

@@ -311,9 +311,6 @@ public class AgenteRaton2 extends Agent {
                 reinicio();
             }
             posicion = posicionAux;
-            System.out.println("Estoy en:");
-            System.out.println(entornoActual.toString());
-            System.out.println(posicion.toString());
             mensajesPendientes.add("Me confirman que estoy en la posicion " + posicion.toString());
             //mensajesPendientes.add(resultado.toString());
 

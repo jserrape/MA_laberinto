@@ -130,6 +130,8 @@ public class GameUI extends JFrame {
                         arrayRatas.get(j).setPosicion(jugadas.get(i).getAccion().getPosicion().getCoorX(), alto - 1 - jugadas.get(i).getAccion().getPosicion().getCoorY());
                     } else {
                         nuevaTrampa(x, y, jugadas.get(i).getJugador().getNombre());
+                        arrayRatas.get(j).incrementaBombasColocadas();
+                        clasificacionGUI.crearClarificacion(arrayRatas);
                     }
                     for (int z = 0; z < arrayBombas.size(); z++) {
                         if (!arrayBombas.get(z).getLabel().getText().equals(arrayRatas.get(j).getJLabel().getText())) {
@@ -137,10 +139,10 @@ public class GameUI extends JFrame {
                                 int xx = (int) (Math.random() * alto);
                                 int yy = (int) (Math.random() * ancho);
                                 arrayRatas.get(j).setPosicion(xx, yy);
-                                arrayRatas.get(j).incrementaBombasColocadas();
                                 arrayBombas.get(z).explotar();
                                 arrayBombas.remove(z);
                                 --z;
+                                clasificacionGUI.crearClarificacion(arrayRatas);
                             }
                         }
                     }
@@ -182,6 +184,7 @@ public class GameUI extends JFrame {
             container.add(rata.getJLabel());
             container.moveToFront(rata.getJLabel());
         }
+        clasificacionGUI.crearClarificacion(arrayRatas);
     }
 
     public void comprobarQueso() {
@@ -194,6 +197,7 @@ public class GameUI extends JFrame {
                 if (arrayRatas.get(j).getQuesos() == this.maxQuesos) {
                     mostrarFIN();
                 }
+                clasificacionGUI.crearClarificacion(arrayRatas);
             }
         }
     }

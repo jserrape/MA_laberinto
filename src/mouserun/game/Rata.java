@@ -15,6 +15,13 @@ import javax.swing.JLabel;
  */
 public class Rata {
 
+    /**
+     * @return the bombasColocadas
+     */
+    public int getBombasColocadas() {
+        return bombasColocadas;
+    }
+
     private String nombre;
     private int x;
     private int y;
