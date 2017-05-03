@@ -33,6 +33,11 @@ public class Bomba {
         label.setForeground(Color.RED);
         label.setBounds(x * GRID_LENGTH, y * GRID_LENGTH - 5, GRID_LENGTH * 2, 20);
     }
+    
+    public void explotar() throws IOException{
+        panel.setBounds(0,0,0,0);
+        label.setText("");
+    }
 
     /**
      * Devuelve el objeto panel de la bomba

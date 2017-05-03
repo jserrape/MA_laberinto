@@ -130,6 +130,9 @@ public class GameUI extends JFrame {
                                 int xx = (int) (Math.random() * alto);
                                 int yy = (int) (Math.random() * ancho);
                                 arrayRatas.get(j).setPosicion(xx, yy);
+                                arrayBombas.get(z).explotar();
+                                arrayBombas.remove(z);
+                                --z;
                             }
                         }
                     }
