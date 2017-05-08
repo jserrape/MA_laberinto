@@ -166,14 +166,73 @@ public class AgenteRaton extends Agent {
             mensajesPendientes.add("El entorno inicial es:\n    N:" + entornoActual.getNorte() + " S:" + entornoActual.getSur()
                     + " O:" + entornoActual.getOeste() + " E:" + entornoActual.getEste());
 
+            ///////////////////////////////////////////////////
+            InformarPartida inf = new InformarPartida(jugador);
+            ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
+            mensaje.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
+            mensaje.setSender(this.myAgent.getAID());
+            mensaje.setLanguage(codec.getName());
+            mensaje.setOntology(ontologia.getName());
+
+            Action action = new Action(getAID(), inf);
+            try {
+                manager.fillContent(mensaje, action);
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            //Se añade el destinatario del mensaje
+            AID id = new AID();
+            id.setLocalName(OntologiaLaberinto.REGISTRO_LABERINTO);
+            mensaje.addReceiver(id);
+
+            //ME REGISTRO AL SUBSCRIBE
+            addBehaviour(new InformarPartidaSubscribe(this.myAgent, mensaje));
+
             return agree;
+        }
+    }
+
+    private class InformarPartidaSubscribe extends SubscriptionInitiator {
+
+        public InformarPartidaSubscribe(Agent agente, ACLMessage mensaje) {
+            super(agente, mensaje);
+        }
+
+        //Maneja la respuesta en caso que acepte: AGREE
+        @Override
+        protected void handleAgree(ACLMessage inform) {
+            mensajesPendientes.add("Mi subscripcion a la plataforma ha sido aceptada");
+        }
+
+        // Maneja la respuesta en caso que rechace: REFUSE
+        @Override
+        protected void handleRefuse(ACLMessage inform) {
+            mensajesPendientes.add("Mi subscripcion a la plataforma ha sido rechazada");
+        }
+
+        //Maneja la informacion enviada: INFORM
+        @Override
+        protected void handleInform(ACLMessage inform) {
+            mensajesPendientes.add("Me ha llegado un subscribe");
+
+        }
+
+        //Maneja la respuesta en caso de fallo: FAILURE
+        @Override
+        protected void handleFailure(ACLMessage failure) {
+
+        }
+
+        @Override
+        public void cancellationCompleted(AID agente) {
         }
     }
 
     private class TareaJugarPartida extends ContractNetResponder {
 
         private ContenedorRaton contenedor;
-        
+
         public TareaJugarPartida(Agent agente, MessageTemplate plantilla) {
             super(agente, plantilla);
         }
@@ -225,7 +284,7 @@ public class AgenteRaton extends Agent {
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
             contenedor.setEntorno(resultado.getEntorno());
             Posicion posicionAux = resultado.getNuevaPosicion();
             if (posicionAux.getCoorX() != contenedor.getPosicion().getCoorX() || posicionAux.getCoorY() != contenedor.getPosicion().getCoorY()) {

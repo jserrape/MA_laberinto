@@ -13,6 +13,7 @@ import laberinto.elementos.EntornoLaberinto;
 import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.ResultadoJugada;
 import util.ContenedorLaberinto;
+import util.GestorSuscripciones;
 import util.ResultadoRaton;
 
 /**
@@ -38,6 +39,8 @@ public class GameUI extends JFrame {
     private int alto;
 
     private int maxQuesos;
+    
+    private GestorSuscripciones gestor;
 
     /**
      * Creates an instance of the GameUI.
@@ -48,11 +51,12 @@ public class GameUI extends JFrame {
      * @param tiempo
      * @param bombasM
      * @param cont
+     * @param ge
      * @throws IOException An IOException can occur when the required game
      * assets are missing.
      * @throws java.lang.InterruptedException
      */
-    public GameUI(int ancho, int alto, int mQuesos,int tiempo,int bombasM,ContenedorLaberinto cont) throws IOException, InterruptedException {
+    public GameUI(int ancho, int alto, int mQuesos,int tiempo,int bombasM,ContenedorLaberinto cont,GestorSuscripciones ge) throws IOException, InterruptedException {
         super("Agente raton de UJAtaco");
         GRID_LENGTH = 30;
 
@@ -62,6 +66,7 @@ public class GameUI extends JFrame {
         this.alto = alto;
 
         this.contenedor=cont;
+        this.gestor=ge;
         
         this.maxQuesos = mQuesos;
 
@@ -203,28 +208,10 @@ public class GameUI extends JFrame {
         }
     }
 
-    public void comprobarBombas(java.util.List<ResultadoJugada> nuevosEntornos, java.util.List<JugadaEntregada> jugadas) throws IOException {
-        for (int i = 0; i < arrayRatas.size(); i++) {
-            for (int j = 0; j < arrayBombas.size(); j++) {
-                if (!arrayBombas.get(j).getLabel().getText().equals(arrayRatas.get(i).getJLabel().getText())) {
-                    if (arrayBombas.get(j).getX() == arrayRatas.get(i).getX() && arrayBombas.get(j).getY() == arrayRatas.get(i).getY()) { //Esta rata debe morir
-                        int x = (int) (Math.random() * alto);
-                        int y = (int) (Math.random() * ancho);
-                        arrayRatas.get(i).setPosicion(x, y);
-                        for (int z = 0; z < jugadas.size(); z++) {
-                            if (jugadas.get(z).getJugador().getNombre().equals(arrayRatas.get(i).getJLabel().getText())) {
-                                //Posicion pos = new Posicion(arrayRatas.get(i).getX(), alto - 1 - arrayRatas.get(i).getY());
-                                //EntornoLaberinto ent = getEntorno(arrayRatas.get(i).getX(), alto - 1 - arrayRatas.get(i).getY());
-                                //nuevosEntornos.get(z).setNuevaPosicion(pos);
-                                //nuevosEntornos.get(z).setEntorno(ent);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    public void anunciarQueso(){
+        
     }
-
+    
     public void mostrarFIN() {
         this.contenedor.completarObjetivoQuesos();
         JLabel countDownLabel = new JLabel("");
@@ -240,22 +227,10 @@ public class GameUI extends JFrame {
         container.moveToFront(countDownLabel);
     }
 
-    /**
-     * Converts the Maze X value to the Left value of the Game Interface
-     *
-     * @param x Valor de la casilla
-     * @return Left value
-     */
     private int getGridLeft(int x) {
         return x * GRID_LENGTH;
     }
 
-    /**
-     * Converts the Maze Y value to the Top value of the Game Interface
-     *
-     * @param y Valor de la casilla
-     * @return Top value
-     */
     private int getGridTop(int y) {
         return (maze.getHeight() - y - 1) * GRID_LENGTH;
     }

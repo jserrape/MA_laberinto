@@ -38,7 +38,7 @@ public class ContenedorLaberinto {
 
     private boolean objetivoQuesos;
 
-    public ContenedorLaberinto(int t, int mq, int mt, int alt, int anc, String _id) throws IOException, InterruptedException {
+    public ContenedorLaberinto(int t, int mq, int mt, int alt, int anc, String _id,GestorSuscripciones ge) throws IOException, InterruptedException {
         this.alto = alt;
         this.ancho = anc;
         this.tiempo = t;
@@ -49,7 +49,7 @@ public class ContenedorLaberinto {
 
         partida = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
 
-        laberintoGUI = new GameUI(getAncho(), getAlto(), getQuesosMax(), getTiempo(), getMaxTrampas(),this);
+        laberintoGUI = new GameUI(getAncho(), getAlto(), getQuesosMax(), getTiempo(), getMaxTrampas(),this,ge);
         laberintoGUI.setVisible(true);
 
         objetivoQuesos = false;

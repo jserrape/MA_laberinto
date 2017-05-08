@@ -3,6 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+// -gui -agents rata1:agentes.AgenteRaton;rata2:agentes.AgenteRaton;rata3:agentes.AgenteRaton;rata4:agentes.AgenteRaton;rata5:agentes.AgenteRaton;rata6:agentes.AgenteRaton;rata7:agentes.AgenteRaton;rata8:agentes.AgenteRaton;rata9:agentes.AgenteRaton;;laberinto:agentes.AgenteLaberinto;
 // -gui -agents rata1:agentes.AgenteRaton;laberinto:agentes.AgenteLaberinto;consola:agentes.AgenteConsola;
 // -gui -agents rata1:agentes.AgenteRaton;rata2:agentes.AgenteRaton;rata3:agentes.AgenteRaton;laberinto:agentes.AgenteLaberinto;consola:agentes.AgenteConsola;
 package agentes;
@@ -23,12 +24,17 @@ import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.FailureException;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.proto.ContractNetInitiator;
 import jade.proto.ProposeInitiator;
+import jade.proto.SubscriptionResponder;
 import jade.proto.SubscriptionResponder.Subscription;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,6 +59,7 @@ import laberinto.elementos.Laberinto;
 import laberinto.elementos.ProponerPartida;
 import laberinto.elementos.ResultadoJugada;
 import util.ContenedorLaberinto;
+import util.GestorSuscripciones;
 import util.ResultadoRaton;
 
 /**
@@ -78,11 +85,11 @@ public class AgenteLaberinto extends Agent {
     private Codec codec = new SLCodec();
     private Ontology ontology;
 
-    //Control de subscripciones
-    private Set<Subscription> suscripcionesJugadores;
+    private TareaInformarPartida eventosPolicia;
+    private GestorSuscripciones gestor;
 
     // Valores por defecto
-    private final long TIME_OUT = 2000; // 2seg
+    private final long TIME_OUT = 300; // 2seg
 
     @Override
     protected void setup() {
@@ -90,8 +97,9 @@ public class AgenteLaberinto extends Agent {
         myGUI = new LaberintoJFrame(this);
         myGUI.setVisible(true);
         mensajesPendientes = new ArrayList();
-        suscripcionesJugadores = new HashSet();
         numPartida = 0;
+
+        gestor = new GestorSuscripciones();
 
         partidasIniciadas = new HashMap<>();
 
@@ -107,6 +115,12 @@ public class AgenteLaberinto extends Agent {
         addBehaviour(new TareaBuscarAgentes(this, 5000));
         addBehaviour(new TareaEnvioConsola(this, 500));
         mensajesPendientes.add("Inicializacion del laberinto acabada");
+
+        // Anadimos la tarea para las suscripciones
+        // Plantilla del mensaje de suscripción
+        MessageTemplate plantilla = MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
+        eventosPolicia = new TareaInformarPartida(this, plantilla, gestor);
+        addBehaviour(eventosPolicia);
     }
 
     @Override
@@ -126,10 +140,62 @@ public class AgenteLaberinto extends Agent {
     public void empezarSistema(int t, int mq, int mt, int alt, int anc) throws IOException, InterruptedException {
         ++numPartida;
         String iid = this.getName() + numPartida;
-        ContenedorLaberinto cont = new ContenedorLaberinto(t, mq, mt, alt, anc, iid);
+        ContenedorLaberinto cont = new ContenedorLaberinto(t, mq, mt, alt, anc, iid,gestor);
         partidasIniciadas.put(iid, cont);
 
         addBehaviour(new TareaNuevaPartida(iid));
+    }
+
+    class TareaInformarPartida extends SubscriptionResponder {
+
+        private Subscription suscripcionJugador;
+
+        public TareaInformarPartida(Agent a, MessageTemplate mt) {
+            super(a, mt);
+        }
+
+        public TareaInformarPartida(Agent a, MessageTemplate mt, SubscriptionManager sm) {
+            super(a, mt, sm);
+        }
+
+        @Override
+        protected ACLMessage handleSubscription(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
+
+            String nombreAgente = subscription.getSender().getName();
+
+            // Registra la suscripción del Jugador si no hay una previa
+            suscripcionJugador = createSubscription(subscription);
+            if (!gestor.haySuscripcion(nombreAgente)) {
+                mySubscriptionManager.register(suscripcionJugador);
+                mensajesPendientes.add("Suscripción registrada al agente: "
+                        + nombreAgente + "\nnúmero de suscripciones: "
+                        + gestor.numSuscripciones());
+            } else {
+                // Ya tenemos una suscripción anterior del jugador y no 
+                // volvemos a registrarlo.
+                mensajesPendientes.add("Suscripción ya registrada al agente: "
+                        + nombreAgente);
+            }
+
+            // Responde afirmativamente con la operación
+            ACLMessage agree = subscription.createReply();
+            agree.setPerformative(ACLMessage.AGREE);
+            return agree;
+        }
+
+        @Override
+        protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
+
+            // Eliminamos la suscripción del agente jugador
+            String nombreAgente = cancel.getSender().getName();
+            suscripcionJugador = gestor.getSuscripcion(nombreAgente);
+            mySubscriptionManager.deregister(suscripcionJugador);
+
+            mensajesPendientes.add("Suscripción cancelada del agente: "
+                    + cancel.getSender().getLocalName()
+                    + "\nsuscripciones restantes: " + gestor.numSuscripciones());
+            return null; // no hay que enviar mensaje de confirmación
+        }
     }
 
     public class TareaNuevaPartida extends OneShotBehaviour {
@@ -236,7 +302,7 @@ public class AgenteLaberinto extends Agent {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 200, id);//<--------------------------------------------200
+            TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 400, id);//<--------------------------------------------200
             myAgent.addBehaviour(new acabarPartida(this.getAgent(), contenedor.getTiempo() * 1000, tarea, contenedor.getLaberintoGUI()));
             myAgent.addBehaviour(tarea);
         }
