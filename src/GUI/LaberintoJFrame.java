@@ -28,11 +28,11 @@ public class LaberintoJFrame extends javax.swing.JFrame {
         this.agent = agent;
         this.setTitle(agent.getName());
 
-        this.tiempo.setText(Integer.toString(agent.tiempo));
-        this.capturas.setText(Integer.toString(agent.quesosMax));
-        this.trampas.setText(Integer.toString(agent.maxTrampas));
-        this.alto.setText(Integer.toString(agent.alto));
-        this.ancho.setText(Integer.toString(agent.ancho));
+        this.tiempo.setText(Integer.toString(60));
+        this.capturas.setText(Integer.toString(5));
+        this.trampas.setText(Integer.toString(3));
+        this.alto.setText(Integer.toString(10));
+        this.ancho.setText(Integer.toString(10));
         this.numRatones.setText("0");
 
         this.empezar.setEnabled(false);

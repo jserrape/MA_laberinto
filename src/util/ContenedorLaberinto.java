@@ -6,6 +6,7 @@
 package util;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import juegos.elementos.Partida;
 import laberinto.OntologiaLaberinto;
 import mouserun.game.GameUI;
@@ -16,10 +17,18 @@ import mouserun.game.GameUI;
  */
 public class ContenedorLaberinto {
 
+    /**
+     * @return the ratonesPartida
+     */
+    public ArrayList<ResultadoRaton> getRatonesPartida() {
+        return ratonesPartida;
+    }
+
     private String idPartida;
     private Partida partida;
 
     private GameUI laberintoGUI;
+    private ArrayList<ResultadoRaton> ratonesPartida;
 
     private int ancho;
     private int alto;
@@ -29,23 +38,27 @@ public class ContenedorLaberinto {
 
     private boolean objetivoQuesos;
 
-    public ContenedorLaberinto(int t, int mq, int mt, int alt, int anc, String id) throws IOException, InterruptedException {
+    public ContenedorLaberinto(int t, int mq, int mt, int alt, int anc, String _id) throws IOException, InterruptedException {
         this.alto = alt;
         this.ancho = anc;
         this.tiempo = t;
         this.quesosMax = mq;
         this.maxTrampas = mt;
 
-        partida = new Partida(getIdPartida(), OntologiaLaberinto.TIPO_JUEGO);
+        partida = new Partida(_id, OntologiaLaberinto.TIPO_JUEGO);
 
         laberintoGUI = new GameUI(getAncho(), getAlto(), getQuesosMax(), getTiempo(), getMaxTrampas());
         laberintoGUI.setVisible(true);
 
         objetivoQuesos = false;
+        ratonesPartida = new ArrayList();
+    }
+
+    public void insertarRaton(ResultadoRaton rata) {
+        getRatonesPartida().add(rata);
     }
 
     public void completarObjetivoQuesos() {
-
         objetivoQuesos = true;
     }
 

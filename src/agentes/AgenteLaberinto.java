@@ -3,6 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+// -gui -agents rata1:agentes.AgenteRaton;laberinto:agentes.AgenteLaberinto;consola:agentes.AgenteConsola;
+// -gui -agents rata1:agentes.AgenteRaton;rata2:agentes.AgenteRaton;rata3:agentes.AgenteRaton;laberinto:agentes.AgenteLaberinto;consola:agentes.AgenteConsola;
 package agentes;
 
 import GUI.LaberintoJFrame;
@@ -76,7 +78,6 @@ public class AgenteLaberinto extends Agent {
 
     //Variables del laberinto
     private LaberintoJFrame myGUI;
-    private Posicion posicionInicio;
 
     //Elementos de control de la partida
     private int numPartida;
@@ -93,17 +94,6 @@ public class AgenteLaberinto extends Agent {
     // Valores por defecto
     private final long TIME_OUT = 2000; // 2seg
 
-    //PARA BORRAR
-    private GameUI laberintoGUI;
-    public int ancho = 10;
-    public int alto = 10;
-    public int tiempo = 60;
-    public int quesosMax = 5;
-    public int maxTrampas = 3;
-    private boolean objetivoQuesos;
-    private ArrayList<ResultadoRaton> ratonesPartida;
-    
-
     @Override
     protected void setup() {
         //Inicializar variables del agente
@@ -112,10 +102,8 @@ public class AgenteLaberinto extends Agent {
         mensajesPendientes = new ArrayList();
         suscripcionesJugadores = new HashSet();
         numPartida = 0;
-        
+
         partidasIniciadas = new HashMap<>();
-        
-        objetivoQuesos = false; //BORRAR
 
         //REGISTRO DE LA ONTOLOGIA
         try {
@@ -125,26 +113,7 @@ public class AgenteLaberinto extends Agent {
         }
         manager.registerLanguage(codec);
         manager.registerOntology(ontology);
-        // Anadimos la tarea para las suscripciones
-        // Primero creamos el gestor de las suscripciones
-        SubscriptionResponder.SubscriptionManager gestorSuscripciones = new SubscriptionResponder.SubscriptionManager() {
-            @Override
-            public boolean register(SubscriptionResponder.Subscription s) throws RefuseException, NotUnderstoodException {
-                suscripcionesJugadores.add(s);
-                return true;
-            }
 
-            @Override
-            public boolean deregister(SubscriptionResponder.Subscription s) throws FailureException {
-                suscripcionesJugadores.remove(s);
-                return true;
-            }
-
-        };
-        // Plantilla del mensaje de suscripción
-        MessageTemplate plantilla = MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
-
-        addBehaviour(new TareaInformarPartida(this, plantilla, gestorSuscripciones));
         addBehaviour(new TareaBuscarAgentes(this, 5000));
         addBehaviour(new TareaEnvioConsola(this, 500));
         mensajesPendientes.add("Inicializacion del laberinto acabada");
@@ -165,74 +134,122 @@ public class AgenteLaberinto extends Agent {
     }
 
     public void empezarSistema(int t, int mq, int mt, int alt, int anc) throws IOException, InterruptedException {
-        
+
         ++numPartida;
-        String iid=this.getName()+numPartida;
-        ContenedorLaberinto cont=new ContenedorLaberinto(t,mq, mt, alt, anc,iid);
+        String iid = this.getName() + numPartida;
+        ContenedorLaberinto cont = new ContenedorLaberinto(t, mq, mt, alt, anc, iid);
         partidasIniciadas.put(iid, cont);
-                
+
         addBehaviour(new TareaNuevaPartida(iid));
-    }
-
-    public class TareaInformarPartida extends SubscriptionResponder {
-
-        private SubscriptionResponder.Subscription suscripcionJugador;
-
-        public TareaInformarPartida(Agent a, MessageTemplate mt, SubscriptionResponder.SubscriptionManager sm) {
-            super(a, mt, sm);
-        }
-
-        @Override
-        protected ACLMessage handleSubscription(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
-            return null;
-        }
-
-        @Override
-        protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
-            // Eliminamos la suscripción
-            mySubscriptionManager.deregister(suscripcionJugador);
-
-            // Informe de la cancelación
-            ACLMessage cancelado = cancel.createReply();
-            cancelado.setPerformative(ACLMessage.INFORM);
-
-            mensajesPendientes.add("Suscripción cancelada del agente: " + cancel.getSender().getLocalName());
-            return cancelado;
-        }
-    }
-
-    private class EnviarDetalleInforme extends OneShotBehaviour {
-
-        @Override
-        public void action() {
-
-        }
-
     }
 
     public class TareaNuevaPartida extends OneShotBehaviour {
 
-        private String _id;
-        
-        public TareaNuevaPartida(String id){
-            this._id=id;
+        private String id;
+
+        public TareaNuevaPartida(String _id) {
+            this.id = _id;
         }
-        
+
         @Override
         public void action() {
+            ContenedorLaberinto contenedor = partidasIniciadas.get(id);
+            Partida partida = contenedor.getPartida();
+            Tablero tablero = new Tablero(contenedor.getAlto(), contenedor.getAncho());
 
+            Posicion posicionInicio = new Posicion(0, 0);
+            int numCapturasQueso = contenedor.getQuesosMax();
+            int numTrampasActivas = contenedor.getMaxTrampas();
+            long maximoJuegoSeg = contenedor.getTiempo();
+            EntornoLaberinto entInicio = contenedor.getLaberintoGUI().getEntorno(0, 0);
+            Laberinto laberinto = new Laberinto(tablero, posicionInicio, entInicio, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
+            ProponerPartida propPartida = new ProponerPartida(partida, laberinto);
+
+            ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
+            msg.setProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE);
+            msg.setSender(myAgent.getAID());
+            msg.setLanguage(codec.getName());
+            msg.setOntology(ontology.getName());
+            for (AID agentesRaton1 : agentesRaton) {
+                msg.addReceiver(agentesRaton1);
+            }
+            msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
+
+            try {
+                Action action = new Action(myAgent.getAID(), propPartida);
+                manager.fillContent(msg, action);
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            // Creamos la tarea de ProponerPartida
+            addBehaviour(new TareaProponerPartida(myAgent, msg, id));
+
+            mensajesPendientes.add("Nueva Partida:\n"
+                    + "    -ID de la partida: " + id + "\n"
+                    + "    -Numero de capturas de queso: " + numCapturasQueso + "\n"
+                    + "    -Numero maximo de trampas: " + numTrampasActivas + "\n"
+                    + "    -Duracion maxima: " + maximoJuegoSeg);
         }
     }
 
     public class TareaProponerPartida extends ProposeInitiator {
 
-        public TareaProponerPartida(Agent agente, ACLMessage msg) {
+        private String id;
+
+        public TareaProponerPartida(Agent agente, ACLMessage msg, String _id) {
             super(agente, msg);
+            this.id = _id;
         }
 
         @Override
         protected void handleAllResponses(Vector responses) {
+            ContenedorLaberinto contenedor = partidasIniciadas.get(id);
+            String rechazos = "Agentes que han rechazado:\n";
+            int numRechazos = 0;
+            ACLMessage msg;
+            PartidaAceptada partida = null;
+            Jugador jugador;
+            Iterator it = responses.iterator();
+            
+            while (it.hasNext()) {
+                msg = (ACLMessage) it.next();
+                if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+                    try {
+                        partida = (PartidaAceptada) manager.extractContent(msg);
+                        jugador = partida.getJugador();
+                        contenedor.insertarRaton(new ResultadoRaton(jugador.getAgenteJugador(), jugador.getNombre()));
+                    } catch (Codec.CodecException | OntologyException ex) {
+                        Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } else {
+                    ++numRechazos;
+                    rechazos = rechazos + "     El agente: " + msg.getSender().getLocalName() + " ha rechazado el juego\n";
+                }
+            }
+            mensajesPendientes.add("Han aceptado " + contenedor.getRatonesPartida().size() + " ratones.");
+            mensajesPendientes.add("Han rechazado " + numRechazos + " ratones.");
+            if (numRechazos > 0) {
+                mensajesPendientes.add(rechazos);
+            }
 
+            //GENERO EL QUESO
+            try {
+                contenedor.getLaberintoGUI().nuevoQueso();
+            } catch (IOException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            //Genero los ratones
+            try {
+                contenedor.getLaberintoGUI().generarRatones(new Posicion(0,0), contenedor.getRatonesPartida());
+            } catch (IOException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            //TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 200, partida.getPartida().getIdPartida());//<--------------------------------------------200
+            //myAgent.addBehaviour(new acabarPartida(this.getAgent(), contenedor.getTiempo() * 1000, tarea));
+            //myAgent.addBehaviour(tarea);
         }
 
         @Override
@@ -384,7 +401,4 @@ public class AgenteLaberinto extends Agent {
         }
     }
 
-    public void lograrObjetivoQuesos() {
-        objetivoQuesos = true;
-    }
 }

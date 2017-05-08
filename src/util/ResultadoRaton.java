@@ -19,10 +19,10 @@ public class ResultadoRaton {
     private Posicion pos;
     private int quesos;
 
-    public ResultadoRaton(AID aidRaton, String nombre, int quesos) {
+    public ResultadoRaton(AID aidRaton, String nombre) {
         this.aidRaton = aidRaton;
         this.nombre = nombre;
-        this.quesos = quesos;
+        this.quesos = 0;
         this.pos = new Posicion(0, 0);
     }
 
