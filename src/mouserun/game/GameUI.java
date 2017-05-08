@@ -12,6 +12,7 @@ import laberinto.OntologiaLaberinto;
 import laberinto.elementos.EntornoLaberinto;
 import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.ResultadoJugada;
+import util.ContenedorLaberinto;
 import util.ResultadoRaton;
 
 /**
@@ -26,6 +27,7 @@ public class GameUI extends JFrame {
     private JLayeredPane container;
 
     private ClasificacionJframe clasificacionGUI;
+    private ContenedorLaberinto contenedor;
 
     //Ratas y queso
     private Queso quesito;
@@ -43,14 +45,14 @@ public class GameUI extends JFrame {
      * @param ancho The width of the user interface.
      * @param alto The height of the user interface.
      * @param mQuesos
-     * @param agent
      * @param tiempo
      * @param bombasM
+     * @param cont
      * @throws IOException An IOException can occur when the required game
      * assets are missing.
      * @throws java.lang.InterruptedException
      */
-    public GameUI(int ancho, int alto, int mQuesos,int tiempo,int bombasM) throws IOException, InterruptedException {
+    public GameUI(int ancho, int alto, int mQuesos,int tiempo,int bombasM,ContenedorLaberinto cont) throws IOException, InterruptedException {
         super("Agente raton de UJAtaco");
         GRID_LENGTH = 30;
 
@@ -59,7 +61,8 @@ public class GameUI extends JFrame {
         this.ancho = ancho;
         this.alto = alto;
 
-
+        this.contenedor=cont;
+        
         this.maxQuesos = mQuesos;
 
         this.mazePanels = new ImagedPanel[ancho][alto];
@@ -223,7 +226,7 @@ public class GameUI extends JFrame {
     }
 
     public void mostrarFIN() {
-        //this.agente.lograrObjetivoQuesos();
+        this.contenedor.completarObjetivoQuesos();
         JLabel countDownLabel = new JLabel("");
         countDownLabel.setForeground(Color.WHITE);
         countDownLabel.setFont(new Font("San Serif", Font.PLAIN, 100));

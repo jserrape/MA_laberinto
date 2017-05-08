@@ -44,10 +44,12 @@ public class ContenedorLaberinto {
         this.tiempo = t;
         this.quesosMax = mq;
         this.maxTrampas = mt;
+        
+        this.idPartida=_id;
 
-        partida = new Partida(_id, OntologiaLaberinto.TIPO_JUEGO);
+        partida = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
 
-        laberintoGUI = new GameUI(getAncho(), getAlto(), getQuesosMax(), getTiempo(), getMaxTrampas());
+        laberintoGUI = new GameUI(getAncho(), getAlto(), getQuesosMax(), getTiempo(), getMaxTrampas(),this);
         laberintoGUI.setVisible(true);
 
         objetivoQuesos = false;
