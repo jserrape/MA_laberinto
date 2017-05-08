@@ -226,7 +226,6 @@ public class LaberintoJFrame extends javax.swing.JFrame {
         } catch (IOException | InterruptedException ex) {
             Logger.getLogger(LaberintoJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
-        this.dispose();
     }//GEN-LAST:event_empezarActionPerformed
 
 

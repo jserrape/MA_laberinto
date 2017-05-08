@@ -6,7 +6,6 @@
 package agentes;
 
 import jade.content.ContentManager;
-import jade.content.Predicate;
 import jade.content.lang.Codec;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.BeanOntologyException;
@@ -15,7 +14,6 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -32,17 +30,16 @@ import jade.proto.ProposeResponder;
 import jade.proto.SubscriptionInitiator;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import juegos.elementos.DetalleInforme;
 import juegos.elementos.InformarPartida;
 import juegos.elementos.Jugador;
 import juegos.elementos.Partida;
 import juegos.elementos.PartidaAceptada;
 import juegos.elementos.Posicion;
+import juegos.elementos.Tablero;
 import laberinto.OntologiaLaberinto;
 import laberinto.elementos.EntornoLaberinto;
 import laberinto.elementos.Jugada;
@@ -50,7 +47,7 @@ import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.Laberinto;
 import laberinto.elementos.ProponerPartida;
 import laberinto.elementos.ResultadoJugada;
-import util.ResultadoRaton;
+import util.ContenedorRaton;
 
 /**
  *
@@ -59,13 +56,9 @@ import util.ResultadoRaton;
  */
 public class AgenteRaton extends Agent {
 
-    private Jugador jugador;
+    private Map<String, ContenedorRaton> partidasIniciadas;
 
-    //Elementos de la partida
-    private Partida partida;
-    private Laberinto tablero;
-    private Posicion posicion;
-    private EntornoLaberinto entornoActual;
+    private Jugador jugador;
 
     private AID[] agentesConsola;
     private ArrayList<String> mensajesPendientes;
@@ -75,37 +68,10 @@ public class AgenteRaton extends Agent {
     private Ontology ontologia;
     private ContentManager manager = (ContentManager) getContentManager();
 
-    //Atributos para control del juego
-    private boolean muerto;
-
-    //Elementos para el movimiento
-    //Casillas visitadas durante la aparicion de este queso
-    private Map<Integer, Posicion> casillasVisitadasQueso;
-    //Pila para volver hacia atras
-    private Stack<Integer> pila;
-    //Clave del raton de la poscion actual
-    private int claveActual;
-    //Clave del posible movimiento a realizar
-    private int auxClave;
-    //Clave de la posicion del queso
-    private int claveQueso;
-    //Contador de pasos para colocar bombas
-    private int bombas;
-    //Contador de bambas que le quedan por colocar
-    private int bombasRestantes;
-    //Variable para comprobar si reiniciar las estructuras destinadas a la busqueda del queso
-    private boolean comprobarPosicion;
-
     @Override
     protected void setup() {
         mensajesPendientes = new ArrayList();
-        muerto = false;
-
-        casillasVisitadasQueso = new HashMap<>();
-        pila = new Stack<>();
-        claveQueso = 0;
-        bombas = 0;
-        comprobarPosicion = false;
+        partidasIniciadas = new HashMap<>();
 
         DFAgentDescription dfd = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
@@ -118,6 +84,7 @@ public class AgenteRaton extends Agent {
             Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
         }
         sd.addOntologies(OntologiaLaberinto.ONTOLOGY_NAME);
+
         //registro paginas amarillas
         try {
             sd.setName(OntologiaLaberinto.REGISTRO_RATON);
@@ -127,32 +94,9 @@ public class AgenteRaton extends Agent {
         } catch (FIPAException fe) {
         }
 
-        //Se crea un mensaje de tipo SUBSCRIBE y se asocia al protocolo FIPA-Subscribe.
         jugador = new Jugador(this.getName(), this.getAID());
-        InformarPartida inf = new InformarPartida(jugador);
 
-        ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
-        mensaje.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
-        mensaje.setSender(this.getAID());
-        mensaje.setLanguage(codec.getName());
-        mensaje.setOntology(ontologia.getName());
-
-        try {
-            Action action = new Action(getAID(), inf);
-            manager.fillContent(mensaje, action);
-        } catch (Codec.CodecException | OntologyException ex) {
-            Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        //Se añade el destinatario del mensaje
-        AID id = new AID();
-        id.setLocalName(OntologiaLaberinto.REGISTRO_LABERINTO);
-        mensaje.addReceiver(id);
-
-        //ME REGISTRO AL SUBSCRIBE
-        addBehaviour(new InformarPartidaSubscribe(this, mensaje));
-
-        //BUSCO LA CONSULA Y LE MANDO LOS MENSAJES
+        //BUSCO LA CONSOLA Y LE MANDO LOS MENSAJES
         addBehaviour(new TareaBuscarConsolas(this, 5000));
         addBehaviour(new TareaEnvioConsola(this, 500));
 
@@ -168,42 +112,13 @@ public class AgenteRaton extends Agent {
 
     @Override
     protected void takeDown() {
+        //Desregristo del agente de las Páginas Amarillas
+        try {
+            DFService.deregister(this);
+        } catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
         System.out.println("Finaliza la ejecución del agente: " + this.getName());
-    }
-
-    private class InformarPartidaSubscribe extends SubscriptionInitiator {
-
-        public InformarPartidaSubscribe(Agent agente, ACLMessage mensaje) {
-            super(agente, mensaje);
-        }
-
-        //Maneja la respuesta en caso que acepte: AGREE
-        @Override
-        protected void handleAgree(ACLMessage inform) {
-            mensajesPendientes.add("Mi subscripcion al laberinto ha sido aceptada");
-        }
-
-        // Maneja la respuesta en caso que rechace: REFUSE
-        @Override
-        protected void handleRefuse(ACLMessage inform) {
-            mensajesPendientes.add("Mi subscripcion al laberinto ha sido rechazada");
-        }
-
-        //Maneja la informacion enviada: INFORM
-        @Override
-        protected void handleInform(ACLMessage detalle) {
-            mensajesPendientes.add("Me ha llegado algo por el subscribe");
-        }
-
-        //Maneja la respuesta en caso de fallo: FAILURE
-        @Override
-        protected void handleFailure(ACLMessage failure) {
-
-        }
-
-        @Override
-        public void cancellationCompleted(AID agente) {
-        }
     }
 
     private class ResponderProposicionPartida extends ProposeResponder {
@@ -225,13 +140,16 @@ public class AgenteRaton extends Agent {
             }
 
             //AQUI TENGO EL TABLERO y LA INFO DE LA PARTIDA
-            partida = proposicionPartida.getPartida();
-            tablero = proposicionPartida.getLaberinto();
-            bombasRestantes=tablero.getNumTrampasActivas();
-            posicion = tablero.getPosicionInicio();
-            entornoActual = tablero.getEntornoInicio();
-            Jugador j = new Jugador(this.myAgent.getName(), this.myAgent.getAID());
-            PartidaAceptada pa = new PartidaAceptada(partida, j);
+            Partida partida = proposicionPartida.getPartida();
+            Laberinto tablero = proposicionPartida.getLaberinto();
+            int bombasRestantes = tablero.getNumTrampasActivas();
+            Posicion posicion = tablero.getPosicionInicio();
+            EntornoLaberinto entornoActual = tablero.getEntornoInicio();
+
+            PartidaAceptada pa = new PartidaAceptada(partida, jugador);
+
+            ContenedorRaton contenedor = new ContenedorRaton(partida.getIdPartida(), partida, tablero, posicion, entornoActual, bombasRestantes);
+            partidasIniciadas.put(partida.getIdPartida(), contenedor);
 
             ACLMessage agree = propuesta.createReply();
             agree.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
@@ -249,12 +167,13 @@ public class AgenteRaton extends Agent {
                     + " O:" + entornoActual.getOeste() + " E:" + entornoActual.getEste());
 
             return agree;
-
         }
     }
 
     private class TareaJugarPartida extends ContractNetResponder {
 
+        private ContenedorRaton contenedor;
+        
         public TareaJugarPartida(Agent agente, MessageTemplate plantilla) {
             super(agente, plantilla);
         }
@@ -271,11 +190,13 @@ public class AgenteRaton extends Agent {
             }
             mensajesPendientes.add("Me ha llegado una peticion de ronda para la partida con id=" + p.getIdPartida());
 
+            contenedor = partidasIniciadas.get(p.getIdPartida());
+
             Jugada jugada;
-            if(moverse()){
-                jugada = new Jugada(OntologiaLaberinto.MOVIMIENTO, posicion);
-            }else{
-                jugada = new Jugada(OntologiaLaberinto.TRAMPA, posicion);
+            if (contenedor.moverse()) {
+                jugada = new Jugada(OntologiaLaberinto.MOVIMIENTO, contenedor.getPosicion());
+            } else {
+                jugada = new Jugada(OntologiaLaberinto.TRAMPA, contenedor.getPosicion());
             }
 
             JugadaEntregada jugEntregada = new JugadaEntregada(p, jugador, jugada);
@@ -304,14 +225,13 @@ public class AgenteRaton extends Agent {
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
-
-            entornoActual = resultado.getEntorno();
+            
+            contenedor.setEntorno(resultado.getEntorno());
             Posicion posicionAux = resultado.getNuevaPosicion();
-            if (posicionAux.getCoorX() != posicion.getCoorX() || posicionAux.getCoorY() != posicion.getCoorY()) {
-                muerto=true;
+            if (posicionAux.getCoorX() != contenedor.getPosicion().getCoorX() || posicionAux.getCoorY() != contenedor.getPosicion().getCoorY()) {
+                contenedor.matar();
             }
-            posicion = posicionAux;
-            mensajesPendientes.add("Me confirman que estoy en la posicion " + posicion.toString());
+            contenedor.setPosicion(posicionAux);
 
             ACLMessage inform = accept.createReply();
             inform.setPerformative(ACLMessage.INFORM);
@@ -387,143 +307,6 @@ public class AgenteRaton extends Agent {
                     mensaje.setContent("No hay mensajes pendientes");
                 }
             }
-        }
-    }
-
-    /**
-     * 
-     * @return true si no pongo bomba, false si la pongo
-     */
-    private boolean  moverse() {
-        claveActual = funcionDeDispersion(posicion.getCoorX(), posicion.getCoorY(), 0);
-        claveQueso = funcionDeDispersion(5, 5, 0);
-
-        if(muerto){
-            muerto=false;
-            reinicio();
-        }
-        
-        //Colocacion de las bombas
-        bombas++;
-        if (bombas == 120 && bombasRestantes != 0) {
-            bombas = 0;
-            --bombasRestantes;
-            return false;
-        }
-        if (casillasVisitadasQueso.get(claveActual) == null) {
-            casillasVisitadasQueso.put(claveActual, new Posicion(posicion.getCoorX(), posicion.getCoorY()));
-        }
-
-        //Elegir un movimiento con prioridad
-        for (int i = 1; i < 5; i++) {
-            auxClave = funcionDeDispersion(posicion.getCoorX(), posicion.getCoorY(), i);
-            if (meAcerco(i) && movimientoValido(i) && casillasVisitadasQueso.get(auxClave) == null) {
-                pila.add(retrocede(i));
-                aplicar(i);
-                return true;
-            }
-        }
-
-        //Elegir un movimiento sin prioridad
-        for (int i = 1; i < 5; i++) {
-            auxClave = funcionDeDispersion(posicion.getCoorX(), posicion.getCoorY(), i);
-            if (movimientoValido(i) && casillasVisitadasQueso.get(auxClave) == null) {
-                pila.add(retrocede(i));
-                aplicar(i);
-                return true;
-            }
-        }
-
-        if (!pila.isEmpty()) {
-            aplicar(pila.pop());
-        } else {
-            reinicio();
-            moverse();
-        }
-        return true;
-    }
-
-    public void reinicio() {
-        casillasVisitadasQueso.clear();
-        pila.clear();
-    }
-
-    public int funcionDeDispersion(int x, int y, int direccion) {
-        switch (direccion) {
-            case 1: //Casilla de arriba
-                y = y + 1;
-                break;
-            case 2: //Casilla de abajo
-                y = y - 1;
-                break;
-            case 3: //Casilla de la izquierda
-                x = x - 1;
-                break;
-            case 4: //Casilla de la derecha
-                x = x + 1;
-                break;
-        }
-        return (y << 3) + (x << 2) + (y << 5) + (x << 7);
-    }
-
-    public boolean meAcerco(int direccion) { //<---- cambiar aqui
-        switch (direccion) {
-            case 1: //Arriba
-                return 5 > posicion.getCoorY();
-            case 2: //Abajo
-                return 5 < posicion.getCoorY();
-            case 3: //Izquierda
-                return 5 < posicion.getCoorX();
-            case 4: //Derecha
-                return 5 > posicion.getCoorX();
-        }
-        return true;
-    }
-
-    public boolean movimientoValido(int direccion) {
-        switch (direccion) {
-            case 1: //Arriba
-                return entornoActual.getNorte().equals(OntologiaLaberinto.LIBRE);
-            case 2: //Abajo
-                return entornoActual.getSur().equals(OntologiaLaberinto.LIBRE);
-            case 3: //Izquierda
-                return entornoActual.getOeste().equals(OntologiaLaberinto.LIBRE);
-            case 4: //Derecha
-                return entornoActual.getEste().equals(OntologiaLaberinto.LIBRE);
-        }
-        return false;
-    }
-
-    public int retrocede(int movimiento) {
-        switch (movimiento) {
-            case 1: //Arriba
-                return 2;
-            case 2: //Abajo
-                return 1;
-            case 3: //Izquierda
-                return 4;
-            case 4: //Derecha
-                return 3;
-        }
-        return 0;
-    }
-
-    public void aplicar(int m) {
-        int x = posicion.getCoorX();
-        int y = posicion.getCoorY();
-        switch (m) {
-            case 1:
-                posicion.setCoorY(y + 1);
-                break;
-            case 2:
-                posicion.setCoorY(y - 1);
-                break;
-            case 3:
-                posicion.setCoorX(x - 1);
-                break;
-            case 4:
-                posicion.setCoorX(x + 1);
-                break;
         }
     }
 
