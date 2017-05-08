@@ -38,8 +38,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -58,6 +60,7 @@ import laberinto.elementos.Laberinto;
 import laberinto.elementos.PosicionQueso;
 import laberinto.elementos.ProponerPartida;
 import laberinto.elementos.ResultadoJugada;
+import util.ContenedorLaberinto;
 import util.ResultadoRaton;
 
 /**
@@ -73,20 +76,11 @@ public class AgenteLaberinto extends Agent {
 
     //Variables del laberinto
     private LaberintoJFrame myGUI;
-    private GameUI laberintoGUI;
-    public int ancho = 10;
-    public int alto = 10;
-    public int tiempo = 60;
-    public int quesosMax = 5;
-    public int maxTrampas = 3;
     private Posicion posicionInicio;
 
     //Elementos de control de la partida
     private int numPartida;
-    private Partida partidaActual;
-    private boolean partidaIniciada;
-    private ArrayList<ResultadoRaton> ratonesPartida;
-    private boolean objetivoQuesos;
+    private Map<String, ContenedorLaberinto> partidasIniciadas;
 
     //Variables para la ontologia
     private ContentManager manager = (ContentManager) getContentManager();
@@ -99,6 +93,17 @@ public class AgenteLaberinto extends Agent {
     // Valores por defecto
     private final long TIME_OUT = 2000; // 2seg
 
+    //PARA BORRAR
+    private GameUI laberintoGUI;
+    public int ancho = 10;
+    public int alto = 10;
+    public int tiempo = 60;
+    public int quesosMax = 5;
+    public int maxTrampas = 3;
+    private boolean objetivoQuesos;
+    private ArrayList<ResultadoRaton> ratonesPartida;
+    
+
     @Override
     protected void setup() {
         //Inicializar variables del agente
@@ -107,8 +112,10 @@ public class AgenteLaberinto extends Agent {
         mensajesPendientes = new ArrayList();
         suscripcionesJugadores = new HashSet();
         numPartida = 0;
-        partidaIniciada = false;
-        objetivoQuesos = false;
+        
+        partidasIniciadas = new HashMap<>();
+        
+        objetivoQuesos = false; //BORRAR
 
         //REGISTRO DE LA ONTOLOGIA
         try {
@@ -158,14 +165,13 @@ public class AgenteLaberinto extends Agent {
     }
 
     public void empezarSistema(int t, int mq, int mt, int alt, int anc) throws IOException, InterruptedException {
-        this.alto = alt;
-        this.ancho = anc;
-        this.tiempo = t;
-        this.quesosMax = mq;
-        this.maxTrampas = mt;
-        laberintoGUI = new GameUI(ancho, alto,mq,this,tiempo,maxTrampas);
-        laberintoGUI.setVisible(true);
-        addBehaviour(new TareaNuevaPartida());
+        
+        ++numPartida;
+        String iid=this.getName()+numPartida;
+        ContenedorLaberinto cont=new ContenedorLaberinto(t,mq, mt, alt, anc,iid);
+        partidasIniciadas.put(iid, cont);
+                
+        addBehaviour(new TareaNuevaPartida(iid));
     }
 
     public class TareaInformarPartida extends SubscriptionResponder {
@@ -178,26 +184,7 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected ACLMessage handleSubscription(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
-            InformarPartida Infpartida = null;
-
-            Action ac;
-            try {
-                ac = (Action) manager.extractContent(subscription);
-                Infpartida = (InformarPartida) ac.getAction();
-            } catch (Codec.CodecException | OntologyException ex) {
-                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            // Registra la suscripción del Jugador
-            suscripcionJugador = createSubscription(subscription);
-            mySubscriptionManager.register(suscripcionJugador);
-
-            // Responde afirmativamente con la operación
-            ACLMessage agree = subscription.createReply();
-            agree.setPerformative(ACLMessage.AGREE);
-
-            mensajesPendientes.add("Suscripción registrada al agente: " + Infpartida.getJugador().getNombre());
-            return agree;
+            return null;
         }
 
         @Override
@@ -225,49 +212,15 @@ public class AgenteLaberinto extends Agent {
 
     public class TareaNuevaPartida extends OneShotBehaviour {
 
+        private String _id;
+        
+        public TareaNuevaPartida(String id){
+            this._id=id;
+        }
+        
         @Override
         public void action() {
-            partidaIniciada = !partidaIniciada;
-            ++numPartida;
-            String idPartida = myAgent.getName() + "-" + numPartida;
-            partidaActual = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
-            Tablero tablero = new Tablero(alto, ancho);
-            int xInicio = 0;
-            int yInicio = 0;
-            posicionInicio = new Posicion(xInicio, yInicio);
-            int numCapturasQueso = quesosMax;
-            int numTrampasActivas = maxTrampas;
-            long maximoJuegoSeg = tiempo;
-            EntornoLaberinto entInicio = laberintoGUI.getEntorno(0, 0);
-            Laberinto laberinto = new Laberinto(tablero, posicionInicio, entInicio, numCapturasQueso, numTrampasActivas, maximoJuegoSeg);
-            ProponerPartida propPartida = new ProponerPartida(partidaActual, laberinto);
 
-            ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
-            msg.setProtocol(FIPANames.InteractionProtocol.FIPA_PROPOSE);
-            msg.setSender(myAgent.getAID());
-            msg.setLanguage(codec.getName());
-            msg.setOntology(ontology.getName());
-            for (AID agentesRaton1 : agentesRaton) {
-                msg.addReceiver(agentesRaton1);
-            }
-            msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
-
-            try {
-                Action action = new Action(myAgent.getAID(), propPartida);
-                manager.fillContent(msg, action);
-            } catch (Codec.CodecException | OntologyException ex) {
-                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            // Creamos la tarea de ProponerPartida
-            addBehaviour(new TareaProponerPartida(myAgent, msg));
-
-            mensajesPendientes.add("Nueva Partida:\n"
-                    + "    -ID de la partida: " + idPartida + "\n"
-                    + "    -Posicion de inicio: " + xInicio + "-" + yInicio + "\n"
-                    + "    -Numero de capturas de queso: " + numCapturasQueso + "\n"
-                    + "    -Numero maximo de trampas: " + numTrampasActivas + "\n"
-                    + "    -Duracion maxima: " + maximoJuegoSeg);
         }
     }
 
@@ -279,53 +232,7 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected void handleAllResponses(Vector responses) {
-            String rechazos = "Agentes que han rechazado:\n";
-            int numRechazos = 0;
-            ACLMessage msg;
-            PartidaAceptada partida = null;
-            Jugador jugador;
-            ratonesPartida = new ArrayList();
-            Iterator it = responses.iterator();
 
-            // Recorremos todas las respuestas recibidas
-            while (it.hasNext()) {
-                msg = (ACLMessage) it.next();
-                if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
-                    try {
-                        partida = (PartidaAceptada) manager.extractContent(msg);
-                        jugador = partida.getJugador();
-                        ratonesPartida.add(new ResultadoRaton(jugador.getAgenteJugador(), jugador.getNombre(), 0));
-                    } catch (Codec.CodecException | OntologyException ex) {
-                        Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else {
-                    ++numRechazos;
-                    rechazos = rechazos + "     El agente: " + msg.getSender().getLocalName() + " ha rechazado el juego\n";
-                }
-            }
-            mensajesPendientes.add("Han aceptado " + ratonesPartida.size() + " ratones.");
-            mensajesPendientes.add("Han rechazado " + numRechazos + " ratones.");
-            if (numRechazos > 0) {
-                mensajesPendientes.add(rechazos);
-            }
-
-            //GENERO EL QUESO
-            try {
-                laberintoGUI.nuevoQueso();
-            } catch (IOException ex) {
-                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            //Genero los ratones
-            try {
-                laberintoGUI.generarRatones(posicionInicio, ratonesPartida);
-            } catch (IOException ex) {
-                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 200, partida.getPartida().getIdPartida());//<--------------------------------------------200
-            myAgent.addBehaviour(new acabarPartida(this.getAgent(), tiempo * 1000, tarea));
-            myAgent.addBehaviour(tarea);
         }
 
         @Override
@@ -353,36 +260,7 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         public void onTick() {
-            if (!objetivoQuesos) {
-                ACLMessage msg = new ACLMessage(ACLMessage.CFP);
-                msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
-                msg.setSender(getAID());
-                msg.setLanguage(codec.getName());
-                msg.setOntology(ontology.getName());
 
-                for (int i = 0; i < ratonesPartida.size(); i++) {
-                    msg.addReceiver(ratonesPartida.get(i).getAidRaton());
-                }
-                msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
-
-                Action ac = new Action(this.myAgent.getAID(), partida);
-
-                try {
-                    manager.fillContent(msg, ac);
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                String mensaj = "Se ha pedido una jugada a los agentes:\n";
-                for (int i = 0; i < ratonesPartida.size(); i++) {
-                    mensaj += "   " + ratonesPartida.get(i).getNombre() + "\n";
-                }
-                mensajesPendientes.add(mensaj);
-                addBehaviour(new TareaJugarPartida(this.myAgent, msg));
-            }else{
-                laberintoGUI.mostrarFIN();
-                this.stop();
-            }
         }
     }
 
@@ -394,46 +272,7 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected void handleAllResponses(Vector responses, Vector acceptances) {
-            String resultado = "Recibidos los siguientes movimiento:";
-            JugadaEntregada jugada = null;
-            List<JugadaEntregada> jugadas = new ArrayList();
-            ACLMessage respuesta;
-            Iterator it = responses.iterator();
-            while (it.hasNext()) {
-                ACLMessage msg = (ACLMessage) it.next();
-                try {
-                    jugada = (JugadaEntregada) manager.extractContent(msg);
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                respuesta = msg.createReply();
-                respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                acceptances.add(respuesta);
-                jugadas.add(jugada);
-                resultado += "\n    Jugador: " + jugada.getJugador().getNombre() + " Accion: " + jugada.getAccion().getJugada();
-            }
-            mensajesPendientes.add(resultado);
 
-            List<ResultadoJugada> resultados = null;
-            try {
-                resultados = laberintoGUI.hacerJugadas(jugadas, partidaActual);
-            } catch (IOException ex) {
-                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            mensajesPendientes.add("Se han generado " + resultados.size() + " resultados de las " + jugadas.size() + " jugadas.");
-
-            ACLMessage msgg;
-            for (int i = 0; i < jugadas.size(); i++) {
-                msgg = (ACLMessage) acceptances.get(i);
-
-                try {
-                    manager.fillContent(msgg, resultados.get(i));
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-                }
-
-                acceptances.set(i, msgg);
-            }
         }
 
     }
@@ -541,13 +380,11 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected void onTick() {
-            laberintoGUI.mostrarFIN();
-            tarea.stop();
-            this.stop();
+
         }
     }
-    
-    public void lograrObjetivoQuesos(){
-        objetivoQuesos=true;
+
+    public void lograrObjetivoQuesos() {
+        objetivoQuesos = true;
     }
 }

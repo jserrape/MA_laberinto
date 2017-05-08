@@ -20,8 +20,6 @@ import util.ResultadoRaton;
  */
 public class GameUI extends JFrame {
 
-    private AgenteLaberinto agente;
-
     private Maze maze;
     private int GRID_LENGTH = 30;
     private ImagedPanel[][] mazePanels;
@@ -52,7 +50,7 @@ public class GameUI extends JFrame {
      * assets are missing.
      * @throws java.lang.InterruptedException
      */
-    public GameUI(int ancho, int alto, int mQuesos, AgenteLaberinto agent,int tiempo,int bombasM) throws IOException, InterruptedException {
+    public GameUI(int ancho, int alto, int mQuesos,int tiempo,int bombasM) throws IOException, InterruptedException {
         super("Agente raton de UJAtaco");
         GRID_LENGTH = 30;
 
@@ -61,7 +59,7 @@ public class GameUI extends JFrame {
         this.ancho = ancho;
         this.alto = alto;
 
-        this.agente = agent;
+
         this.maxQuesos = mQuesos;
 
         this.mazePanels = new ImagedPanel[ancho][alto];
@@ -225,7 +223,7 @@ public class GameUI extends JFrame {
     }
 
     public void mostrarFIN() {
-        this.agente.lograrObjetivoQuesos();
+        //this.agente.lograrObjetivoQuesos();
         JLabel countDownLabel = new JLabel("");
         countDownLabel.setForeground(Color.WHITE);
         countDownLabel.setFont(new Font("San Serif", Font.PLAIN, 100));
