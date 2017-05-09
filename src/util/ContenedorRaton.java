@@ -72,7 +72,7 @@ public class ContenedorRaton {
      */
     public boolean moverse() {
         claveActual = funcionDeDispersion(getPosicion().getCoorX(), getPosicion().getCoorY(), 0);
-        claveQueso = funcionDeDispersion(this.posicionQueso.getCoorX(),this.posicionQueso.getCoorY(), 0);
+        claveQueso = funcionDeDispersion(this.posicionQueso.getCoorX(), this.posicionQueso.getCoorY(), 0);
 
         if (nuevoQueso) {
             nuevoQueso = false;
@@ -88,7 +88,7 @@ public class ContenedorRaton {
 
         //Colocacion de las bombas
         bombas++;
-        if ((bombas == 120 && bombasRestantes != 0)) {
+        if ((bombas == 120 && bombasRestantes != 0) || (claveActual == claveQueso)) {
             bombas = 0;
             --bombasRestantes;
             return false;
