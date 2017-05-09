@@ -1,1 +1,1 @@
-http://10.82.37.145:7778/acc
+http://xenahort:7778/acc

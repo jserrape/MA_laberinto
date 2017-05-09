@@ -72,20 +72,18 @@ public class ContenedorRaton {
      */
     public boolean moverse() {
         claveActual = funcionDeDispersion(getPosicion().getCoorX(), getPosicion().getCoorY(), 0);
-        claveQueso = funcionDeDispersion(5, 5, 0);
+        claveQueso = funcionDeDispersion(this.posicionQueso.getCoorX(),this.posicionQueso.getCoorY(), 0);
 
         if (nuevoQueso) {
             nuevoQueso = false;
             if (casillasVisitadasQueso.get(claveQueso) != null) {
                 reinicio();
-                System.out.println("Reinicio por queso nuevo");
             }
         }
 
         if (muerto) {
             muerto = false;
             reinicio();
-            System.out.println("Reinicio las estructuras por haber muerto");
         }
 
         //Colocacion de las bombas

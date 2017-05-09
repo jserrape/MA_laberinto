@@ -189,13 +189,11 @@ public class GameUI extends JFrame {
     }
 
     public void nuevoQueso() throws IOException {
-        System.out.println("Creado el primer queso");
         int x = (int) (Math.random() * alto);
         int y = (int) (Math.random() * ancho);
         quesito = new Queso(x, alto - 1 - y);
         container.add(getQuesito().getPanel());
         container.moveToFront(getQuesito().getPanel());
-
     }
 
     public void nuevaTrampa(int x, int y, String creador) throws IOException {
@@ -237,7 +235,6 @@ public class GameUI extends JFrame {
                     }
                 }
 
-                System.out.println("QUESO NUEVO!!!: " + gestor.numSuscripciones());
                 Subscription suscripcion;
                 DetalleInforme quesoLogrado = new DetalleInforme(part, posicion);
 

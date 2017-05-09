@@ -221,7 +221,6 @@ public class AgenteLaberinto extends Agent {
             Partida partida = contenedor.getPartida();
             Tablero tablero = new Tablero(contenedor.getAlto(), contenedor.getAncho());
 
-            System.out.println("Creada la pos de inicio del queso");
             Posicion posicionInicio = new Posicion(contenedor.getLaberintoGUI().getQuesito().getX(),contenedor.getAncho()-1-contenedor.getLaberintoGUI().getQuesito().getY());
             int numCapturasQueso = contenedor.getQuesosMax();
             int numTrampasActivas = contenedor.getMaxTrampas();
