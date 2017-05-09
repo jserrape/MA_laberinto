@@ -141,7 +141,7 @@ public class AgenteLaberinto extends Agent {
     public void empezarSistema(int t, int mq, int mt, int alt, int anc) throws IOException, InterruptedException {
         ++numPartida;
         String iid = this.getName() + numPartida;
-        ContenedorLaberinto cont = new ContenedorLaberinto(t, mq, mt, alt, anc, iid,gestor);
+        ContenedorLaberinto cont = new ContenedorLaberinto(t, mq, mt, alt, anc, iid,gestor,codec,ontology,manager);
         partidasIniciadas.put(iid, cont);
 
         addBehaviour(new TareaNuevaPartida(iid));
@@ -399,7 +399,7 @@ public class AgenteLaberinto extends Agent {
             List<ResultadoJugada> resultados = null;
             try {
                 resultados = contenedor.getLaberintoGUI().hacerJugadas(jugadas, new Partida(contenedor.getIdPartida(), OntologiaLaberinto.TIPO_JUEGO));
-            } catch (IOException ex) {
+            } catch (IOException | Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
             mensajesPendientes.add("Se han generado " + resultados.size() + " resultados de las " + jugadas.size() + " jugadas.");

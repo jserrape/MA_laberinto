@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import juegos.elementos.DetalleInforme;
+import juegos.elementos.GanadorPartida;
 import juegos.elementos.InformarPartida;
 import juegos.elementos.Jugador;
 import juegos.elementos.Partida;
@@ -47,6 +49,7 @@ import laberinto.elementos.EntregarJugada;
 import laberinto.elementos.Jugada;
 import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.Laberinto;
+import laberinto.elementos.PosicionQueso;
 import laberinto.elementos.ProponerPartida;
 import laberinto.elementos.ResultadoJugada;
 import util.ContenedorRaton;
@@ -217,7 +220,23 @@ public class AgenteRaton extends Agent {
         @Override
         protected void handleInform(ACLMessage inform) {
             mensajesPendientes.add("Me ha llegado un subscribe");
-
+            DetalleInforme detalle = null;
+            
+            try {
+                detalle = (DetalleInforme) manager.extractContent(inform);
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            if (detalle.getDetalle() instanceof PosicionQueso) {
+                PosicionQueso pos= (PosicionQueso) detalle.getDetalle();
+                mensajesPendientes.add("El queso ha cambiado de lugar: " + pos.toString());
+            } else {
+                if (detalle.getDetalle() instanceof juegos.elementos.Error) {
+                    juegos.elementos.Error err = (juegos.elementos.Error) detalle.getDetalle();
+                    mensajesPendientes.add("Ha habido un error:\n  " + err.getDetalle());
+                }
+            }
         }
 
         //Maneja la respuesta en caso de fallo: FAILURE
@@ -251,20 +270,18 @@ public class AgenteRaton extends Agent {
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
-            mensajesPendientes.add("Me ha llegado una peticion de ronda para la partida con id=" + p.getIdPartida());
+           // mensajesPendientes.add("Me ha llegado una peticion de ronda para la partida con id=" + p.getIdPartida());
 
             contenedor = partidasIniciadas.get(p.getIdPartida());
 
             Jugada jugada;
             if (contenedor.moverse()) {
                 jugada = new Jugada(OntologiaLaberinto.MOVIMIENTO, contenedor.getPosicion());
-                mensajesPendientes.add("Me muevo");
             } else {
                 jugada = new Jugada(OntologiaLaberinto.TRAMPA, contenedor.getPosicion());
             }
 
             JugadaEntregada jugEntregada = new JugadaEntregada(p, jugador, jugada);
-            mensajesPendientes.add(jugEntregada.toString());
 
             ACLMessage respuesta = cfp.createReply();
             respuesta.setPerformative(ACLMessage.PROPOSE);
@@ -290,7 +307,7 @@ public class AgenteRaton extends Agent {
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
-            mensajesPendientes.add(resultado.toString());
+         //   mensajesPendientes.add(resultado.toString());
             contenedor.setEntorno(resultado.getEntorno());
             Posicion posicionAux = resultado.getNuevaPosicion();
             if (posicionAux.getCoorX() != contenedor.getPosicion().getCoorX() || posicionAux.getCoorY() != contenedor.getPosicion().getCoorY()) {

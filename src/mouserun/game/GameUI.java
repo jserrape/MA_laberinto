@@ -2,15 +2,26 @@ package mouserun.game;
 
 import GUI.ClasificacionJframe;
 import agentes.AgenteLaberinto;
+import jade.content.ContentManager;
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.lang.acl.ACLMessage;
+import jade.proto.SubscriptionResponder.Subscription;
 import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import juegos.elementos.DetalleInforme;
 import juegos.elementos.Partida;
 import juegos.elementos.Posicion;
 import laberinto.OntologiaLaberinto;
 import laberinto.elementos.EntornoLaberinto;
 import laberinto.elementos.JugadaEntregada;
+import laberinto.elementos.PosicionQueso;
 import laberinto.elementos.ResultadoJugada;
 import util.ContenedorLaberinto;
 import util.GestorSuscripciones;
@@ -39,8 +50,11 @@ public class GameUI extends JFrame {
     private int alto;
 
     private int maxQuesos;
-    
+
     private GestorSuscripciones gestor;
+    private Codec codec;
+    private Ontology ontology;
+    private final ContentManager manager;
 
     /**
      * Creates an instance of the GameUI.
@@ -56,24 +70,28 @@ public class GameUI extends JFrame {
      * assets are missing.
      * @throws java.lang.InterruptedException
      */
-    public GameUI(int ancho, int alto, int mQuesos,int tiempo,int bombasM,ContenedorLaberinto cont,GestorSuscripciones ge) throws IOException, InterruptedException {
+    public GameUI(int ancho, int alto, int mQuesos, int tiempo, int bombasM, ContenedorLaberinto cont, GestorSuscripciones ge, Codec co, Ontology ont, ContentManager ma) throws IOException, InterruptedException {
         super("Agente raton de UJAtaco");
         GRID_LENGTH = 30;
 
         arrayBombas = new ArrayList();
 
+        this.codec = co;
+        this.ontology = ont;
+        this.manager = ma;
+
         this.ancho = ancho;
         this.alto = alto;
 
-        this.contenedor=cont;
-        this.gestor=ge;
-        
+        this.contenedor = cont;
+        this.gestor = ge;
+
         this.maxQuesos = mQuesos;
 
         this.mazePanels = new ImagedPanel[ancho][alto];
         this.maze = new Maze(ancho, alto);
 
-        clasificacionGUI = new ClasificacionJframe(ancho,alto,mQuesos,tiempo,bombasM);
+        clasificacionGUI = new ClasificacionJframe(ancho, alto, mQuesos, tiempo, bombasM);
 
         initialiseUI();
     }
@@ -122,7 +140,7 @@ public class GameUI extends JFrame {
         return maze.getGrid(x, y).getEntorno();
     }
 
-    public java.util.List<ResultadoJugada> hacerJugadas(java.util.List<JugadaEntregada> jugadas, Partida part) throws IOException {
+    public java.util.List<ResultadoJugada> hacerJugadas(java.util.List<JugadaEntregada> jugadas, Partida part) throws IOException, Codec.CodecException, OntologyException {
         java.util.List<ResultadoJugada> nuevosEntornos;
         nuevosEntornos = new ArrayList();
         boolean muerto;
@@ -159,7 +177,7 @@ public class GameUI extends JFrame {
                 }
             }
         }
-        comprobarQueso();
+        comprobarQueso(jugadas, part);
         return nuevosEntornos;
     }
 
@@ -169,6 +187,7 @@ public class GameUI extends JFrame {
         quesito = new Queso(x, alto - 1 - y);
         container.add(quesito.getPanel());
         container.moveToFront(quesito.getPanel());
+
     }
 
     public void nuevaTrampa(int x, int y, String creador) throws IOException {
@@ -193,13 +212,43 @@ public class GameUI extends JFrame {
         clasificacionGUI.crearClarificacion(arrayRatas);
     }
 
-    public void comprobarQueso() {
+    public void comprobarQueso(java.util.List<JugadaEntregada> jugadas, Partida part) throws Codec.CodecException, OntologyException {
         for (int j = 0; j < arrayRatas.size(); j++) {
             if (arrayRatas.get(j).getX() == quesito.getX() && arrayRatas.get(j).getY() == quesito.getY()) {
+
                 arrayRatas.get(j).incrementaQueso();
                 int x = (int) (Math.random() * alto);
                 int y = (int) (Math.random() * ancho);
                 quesito.setPosicion(x, alto - 1 - y);
+
+                PosicionQueso posicion = null;
+                for (int i = 0; i < jugadas.size(); i++) {
+                    if (jugadas.get(i).getJugador().getNombre().equals(arrayRatas.get(j).getJLabel().getText())) {
+                        posicion = new PosicionQueso(part, new Posicion(quesito.getX(), alto - 1 -quesito.getY()), jugadas.get(i).getJugador());
+                        i = jugadas.size();
+                    }
+                }
+
+                System.out.println("QUESO NUEVO!!!: " + gestor.numSuscripciones());
+                Subscription suscripcion;
+                DetalleInforme quesoLogrado = new DetalleInforme(part, posicion);
+
+                posicion = new PosicionQueso();
+                for (int i = 0; i < arrayRatas.size(); i++) {
+                    suscripcion = gestor.getSuscripcion(arrayRatas.get(i).getJLabel().getText());
+
+                    // Creamos el mensaje para enviar a los jugadores
+                    ACLMessage msgQueso = new ACLMessage(ACLMessage.INFORM);
+                    msgQueso.setLanguage(codec.getName());
+                    msgQueso.setOntology(ontology.getName());
+
+                    manager.fillContent(msgQueso, quesoLogrado);
+
+                    if (suscripcion != null) {
+                        suscripcion.notify(msgQueso);
+                    }
+                }
+
                 if (arrayRatas.get(j).getQuesos() == this.maxQuesos) {
                     mostrarFIN();
                 }
@@ -208,10 +257,10 @@ public class GameUI extends JFrame {
         }
     }
 
-    public void anunciarQueso(){
-        
+    public void anunciarQueso() {
+
     }
-    
+
     public void mostrarFIN() {
         this.contenedor.completarObjetivoQuesos();
         JLabel countDownLabel = new JLabel("");

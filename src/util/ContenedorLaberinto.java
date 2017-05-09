@@ -5,6 +5,9 @@
  */
 package util;
 
+import jade.content.ContentManager;
+import jade.content.lang.Codec;
+import jade.content.onto.Ontology;
 import java.io.IOException;
 import java.util.ArrayList;
 import juegos.elementos.Partida;
@@ -38,7 +41,7 @@ public class ContenedorLaberinto {
 
     private boolean objetivoQuesos;
 
-    public ContenedorLaberinto(int t, int mq, int mt, int alt, int anc, String _id,GestorSuscripciones ge) throws IOException, InterruptedException {
+    public ContenedorLaberinto(int t, int mq, int mt, int alt, int anc, String _id,GestorSuscripciones ge,Codec co,Ontology ont,ContentManager ma) throws IOException, InterruptedException {
         this.alto = alt;
         this.ancho = anc;
         this.tiempo = t;
@@ -49,7 +52,7 @@ public class ContenedorLaberinto {
 
         partida = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
 
-        laberintoGUI = new GameUI(getAncho(), getAlto(), getQuesosMax(), getTiempo(), getMaxTrampas(),this,ge);
+        laberintoGUI = new GameUI(getAncho(), getAlto(), getQuesosMax(), getTiempo(), getMaxTrampas(),this,ge,co,ont,ma);
         laberintoGUI.setVisible(true);
 
         objetivoQuesos = false;
