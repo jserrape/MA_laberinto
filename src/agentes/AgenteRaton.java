@@ -149,6 +149,8 @@ public class AgenteRaton extends Agent {
             Laberinto tablero = proposicionPartida.getLaberinto();
             int bombasRestantes = tablero.getNumTrampasActivas();
             Posicion posicion = tablero.getPosicionInicio();
+            mensajesPendientes.add(posicion.toString());
+            
             EntornoLaberinto entornoActual = tablero.getEntornoInicio();
 
             PartidaAceptada pa = new PartidaAceptada(partida, jugador);
@@ -231,6 +233,8 @@ public class AgenteRaton extends Agent {
             if (detalle.getDetalle() instanceof PosicionQueso) {
                 PosicionQueso pos= (PosicionQueso) detalle.getDetalle();
                 mensajesPendientes.add("El queso ha cambiado de lugar: " + pos.toString());
+                ContenedorRaton contenedor = partidasIniciadas.get(pos.getPartida().getIdPartida());
+                contenedor.cambiarQueso(pos.getPosicion());
             } else {
                 if (detalle.getDetalle() instanceof juegos.elementos.Error) {
                     juegos.elementos.Error err = (juegos.elementos.Error) detalle.getDetalle();

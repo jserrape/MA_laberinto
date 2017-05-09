@@ -33,6 +33,13 @@ import util.ResultadoRaton;
  */
 public class GameUI extends JFrame {
 
+    /**
+     * @return the quesito
+     */
+    public Queso getQuesito() {
+        return quesito;
+    }
+
     private Maze maze;
     private int GRID_LENGTH = 30;
     private ImagedPanel[][] mazePanels;
@@ -182,11 +189,12 @@ public class GameUI extends JFrame {
     }
 
     public void nuevoQueso() throws IOException {
+        System.out.println("Creado el primer queso");
         int x = (int) (Math.random() * alto);
         int y = (int) (Math.random() * ancho);
         quesito = new Queso(x, alto - 1 - y);
-        container.add(quesito.getPanel());
-        container.moveToFront(quesito.getPanel());
+        container.add(getQuesito().getPanel());
+        container.moveToFront(getQuesito().getPanel());
 
     }
 
@@ -199,10 +207,10 @@ public class GameUI extends JFrame {
         arrayBombas.add(bomb);
     }
 
-    public void generarRatones(Posicion posicionInicio, ArrayList<ResultadoRaton> ratonesPartida) throws IOException {
+    public void generarRatones(ArrayList<ResultadoRaton> ratonesPartida) throws IOException {
         Rata rata;
         for (int i = 0; i < ratonesPartida.size(); i++) {
-            rata = new Rata(ratonesPartida.get(i).getNombre(), posicionInicio.getCoorX(), alto - 1 - posicionInicio.getCoorY());
+            rata = new Rata(ratonesPartida.get(i).getNombre(), 0, alto - 1 - 0);
             arrayRatas.add(rata);
             container.add(rata.getPanel());
             container.moveToFront(rata.getPanel());
@@ -214,17 +222,17 @@ public class GameUI extends JFrame {
 
     public void comprobarQueso(java.util.List<JugadaEntregada> jugadas, Partida part) throws Codec.CodecException, OntologyException {
         for (int j = 0; j < arrayRatas.size(); j++) {
-            if (arrayRatas.get(j).getX() == quesito.getX() && arrayRatas.get(j).getY() == quesito.getY()) {
+            if (arrayRatas.get(j).getX() == getQuesito().getX() && arrayRatas.get(j).getY() == getQuesito().getY()) {
 
                 arrayRatas.get(j).incrementaQueso();
                 int x = (int) (Math.random() * alto);
                 int y = (int) (Math.random() * ancho);
-                quesito.setPosicion(x, alto - 1 - y);
+                getQuesito().setPosicion(x, alto - 1 - y);
 
                 PosicionQueso posicion = null;
                 for (int i = 0; i < jugadas.size(); i++) {
                     if (jugadas.get(i).getJugador().getNombre().equals(arrayRatas.get(j).getJLabel().getText())) {
-                        posicion = new PosicionQueso(part, new Posicion(quesito.getX(), alto - 1 -quesito.getY()), jugadas.get(i).getJugador());
+                        posicion = new PosicionQueso(part, new Posicion(getQuesito().getX(), alto - 1 -getQuesito().getY()), jugadas.get(i).getJugador());
                         i = jugadas.size();
                     }
                 }

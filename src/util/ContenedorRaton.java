@@ -29,6 +29,9 @@ public class ContenedorRaton {
 
     //Atributos para control del juego
     private boolean muerto;
+    private boolean nuevoQueso;
+
+    private Posicion posicionQueso;
 
     //Elementos para el movimiento
     //Casillas visitadas durante la aparicion de este queso
@@ -45,23 +48,22 @@ public class ContenedorRaton {
     private int bombas;
     //Contador de bambas que le quedan por colocar
     private int bombasRestantes;
-    //Variable para comprobar si reiniciar las estructuras destinadas a la busqueda del queso
-    private boolean comprobarPosicion;
 
-    public ContenedorRaton(String _id, Partida _partida, Laberinto _tablero, Posicion _posicion, EntornoLaberinto _entornoActual, int _bombasRestantes) {
+    public ContenedorRaton(String _id, Partida _partida, Laberinto _tablero, Posicion _posicionQ, EntornoLaberinto _entornoActual, int _bombasRestantes) {
         this.id = _id;
         this.partida = _partida;
         this.tablero = _tablero;
-        this.posicion = _posicion;
+        this.posicion = new Posicion(0, 0);
         this.entornoActual = _entornoActual;
         this.bombasRestantes = _bombasRestantes;
+        this.posicionQueso = _posicionQ;
 
+        nuevoQueso = false;
         muerto = false;
         casillasVisitadasQueso = new HashMap<>();
         pila = new Stack<>();
         claveQueso = 0;
         bombas = 0;
-        comprobarPosicion = false;
     }
 
     /**
@@ -72,14 +74,23 @@ public class ContenedorRaton {
         claveActual = funcionDeDispersion(getPosicion().getCoorX(), getPosicion().getCoorY(), 0);
         claveQueso = funcionDeDispersion(5, 5, 0);
 
+        if (nuevoQueso) {
+            nuevoQueso = false;
+            if (casillasVisitadasQueso.get(claveQueso) != null) {
+                reinicio();
+                System.out.println("Reinicio por queso nuevo");
+            }
+        }
+
         if (muerto) {
             muerto = false;
             reinicio();
+            System.out.println("Reinicio las estructuras por haber muerto");
         }
 
         //Colocacion de las bombas
         bombas++;
-        if (bombas == 120 && bombasRestantes != 0) {
+        if ((bombas == 120 && bombasRestantes != 0)) {
             bombas = 0;
             --bombasRestantes;
             return false;
@@ -140,16 +151,16 @@ public class ContenedorRaton {
         return (y << 3) + (x << 2) + (y << 5) + (x << 7);
     }
 
-    public boolean meAcerco(int direccion) { //<--------------------------------------------------- cambiar aqui
+    public boolean meAcerco(int direccion) {
         switch (direccion) {
             case 1: //Arriba
-                return 5 > getPosicion().getCoorY();
+                return posicionQueso.getCoorY() > getPosicion().getCoorY();
             case 2: //Abajo
-                return 5 < getPosicion().getCoorY();
+                return posicionQueso.getCoorY() < getPosicion().getCoorY();
             case 3: //Izquierda
-                return 5 < getPosicion().getCoorX();
+                return posicionQueso.getCoorX() < getPosicion().getCoorX();
             case 4: //Derecha
-                return 5 > getPosicion().getCoorX();
+                return posicionQueso.getCoorX() > getPosicion().getCoorX();
         }
         return true;
     }
@@ -239,12 +250,17 @@ public class ContenedorRaton {
     public void setEntorno(EntornoLaberinto ent) {
         this.entornoActual = ent;
     }
-    
-    public void matar(){
-        muerto=true;
+
+    public void matar() {
+        muerto = true;
     }
-    
-    public void setPosicion(Posicion p){
-        this.posicion=p;
+
+    public void setPosicion(Posicion p) {
+        this.posicion = p;
+    }
+
+    public void cambiarQueso(Posicion p) {
+        this.posicionQueso = p;
+        nuevoQueso = true;
     }
 }

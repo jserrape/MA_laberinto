@@ -86,7 +86,7 @@ public class AgenteLaberinto extends Agent {
     private Codec codec = new SLCodec();
     private Ontology ontology;
 
-    private TareaInformarPartida eventosPolicia;
+    private TareaInformarPartida eventosLaberinto;
     private GestorSuscripciones gestor;
 
     // Valores por defecto
@@ -120,8 +120,8 @@ public class AgenteLaberinto extends Agent {
         // Anadimos la tarea para las suscripciones
         // Plantilla del mensaje de suscripción
         MessageTemplate plantilla = MessageTemplate.MatchProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
-        eventosPolicia = new TareaInformarPartida(this, plantilla, gestor);
-        addBehaviour(eventosPolicia);
+        eventosLaberinto = new TareaInformarPartida(this, plantilla, gestor);
+        addBehaviour(eventosLaberinto);
     }
 
     @Override
@@ -210,10 +210,19 @@ public class AgenteLaberinto extends Agent {
         @Override
         public void action() {
             ContenedorLaberinto contenedor = partidasIniciadas.get(id);
+            
+            //GENERO EL QUESO
+            try {
+                contenedor.getLaberintoGUI().nuevoQueso();
+            } catch (IOException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
             Partida partida = contenedor.getPartida();
             Tablero tablero = new Tablero(contenedor.getAlto(), contenedor.getAncho());
 
-            Posicion posicionInicio = new Posicion(0, 0);
+            System.out.println("Creada la pos de inicio del queso");
+            Posicion posicionInicio = new Posicion(contenedor.getLaberintoGUI().getQuesito().getX(),contenedor.getAncho()-1-contenedor.getLaberintoGUI().getQuesito().getY());
             int numCapturasQueso = contenedor.getQuesosMax();
             int numTrampasActivas = contenedor.getMaxTrampas();
             long maximoJuegoSeg = contenedor.getTiempo();
@@ -289,16 +298,9 @@ public class AgenteLaberinto extends Agent {
                 mensajesPendientes.add(rechazos);
             }
 
-            //GENERO EL QUESO
-            try {
-                contenedor.getLaberintoGUI().nuevoQueso();
-            } catch (IOException ex) {
-                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
             //Genero los ratones
             try {
-                contenedor.getLaberintoGUI().generarRatones(new Posicion(0, 0), contenedor.getRatonesPartida());
+                contenedor.getLaberintoGUI().generarRatones(contenedor.getRatonesPartida());
             } catch (IOException ex) {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
