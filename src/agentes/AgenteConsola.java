@@ -25,9 +25,10 @@ import util.MensajeConsola;
  * @author pedroj
  */
 public class AgenteConsola extends Agent {
+
     private ArrayList<ConsolaJFrame> myGui;
     private ArrayList<MensajeConsola> mensajesPendientes;
-    
+
     /**
      * Se ejecuta cuando se inicia el agente
      */
@@ -36,27 +37,25 @@ public class AgenteConsola extends Agent {
         //Incialización de variables
         myGui = new ArrayList();
         mensajesPendientes = new ArrayList();
-        
+
         //Regisro de la Ontología
-        
         //Registro en Página Amarillas
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
-	ServiceDescription sd = new ServiceDescription();
-	sd.setType(OntologiaLaberinto.REGISTRO_CONSOLA);
-	sd.setName(OntologiaLaberinto.REGISTRO_CONSOLA);
-	dfd.addServices(sd);
-	try {
+        ServiceDescription sd = new ServiceDescription();
+        sd.setType(OntologiaLaberinto.REGISTRO_CONSOLA);
+        sd.setName(OntologiaLaberinto.REGISTRO_CONSOLA);
+        dfd.addServices(sd);
+        try {
             DFService.register(this, dfd);
-	}
-	catch (FIPAException fe) {
+        } catch (FIPAException fe) {
             fe.printStackTrace();
-	}
-        
+        }
+
         // Se añaden las tareas principales
-       addBehaviour(new TareaRecepcionMensajes());
+        addBehaviour(new TareaRecepcionMensajes());
     }
-    
+
     /**
      * Se ejecuta al finalizar el agente
      */
@@ -65,13 +64,10 @@ public class AgenteConsola extends Agent {
         //Desregistro de las Páginas Amarillas
         try {
             DFService.deregister(this);
-	}
-            catch (FIPAException fe) {
-            fe.printStackTrace();
-	}
-        
+        } catch (FIPAException fe) {
+        }
+
         //Se liberan los recuros y se despide
-        
         cerrarConsolas();
         System.out.println("Finaliza la ejecución de " + this.getName());
     }
@@ -82,13 +78,14 @@ public class AgenteConsola extends Agent {
         Iterator<ConsolaJFrame> it = myGui.iterator();
         while (it.hasNext()) {
             ConsolaJFrame gui = it.next();
-            if (gui.getNombreAgente().compareTo(nombreAgente) == 0)
+            if (gui.getNombreAgente().compareTo(nombreAgente) == 0) {
                 return gui;
+            }
         }
-        
+
         return null;
     }
-    
+
     private void cerrarConsolas() {
         //Se eliminan las consolas que están abiertas
         Iterator<ConsolaJFrame> it = myGui.iterator();
@@ -97,7 +94,7 @@ public class AgenteConsola extends Agent {
             gui.dispose();
         }
     }
-    
+
     //Tareas del agente consola
     public class TareaRecepcionMensajes extends CyclicBehaviour {
 
@@ -109,33 +106,33 @@ public class AgenteConsola extends Agent {
             if (mensaje != null) {
                 //procesamos el mensaje
                 MensajeConsola mensajeConsola = new MensajeConsola(mensaje.getSender().getName(),
-                                    mensaje.getContent());
+                        mensaje.getContent());
                 mensajesPendientes.add(mensajeConsola);
                 addBehaviour(new TareaPresentarMensaje());
-            } 
-            else
+            } else {
                 block();
-            
+            }
+
         }
-    
+
     }
-    
+
     public class TareaPresentarMensaje extends OneShotBehaviour {
 
         @Override
         public void action() {
             //Se coge el primer mensaje
             MensajeConsola mensajeConsola = mensajesPendientes.remove(0);
-            
+
             //Se busca la ventana de consola o se crea una nueva
             ConsolaJFrame gui = buscarConsola(mensajeConsola.getNombreAgente());
             if (gui == null) {
                 gui = new ConsolaJFrame(mensajeConsola.getNombreAgente());
                 myGui.add(gui);
-            } 
-            
+            }
+
             gui.presentarSalida(mensajeConsola);
         }
-        
+
     }
 }

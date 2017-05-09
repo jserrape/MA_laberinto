@@ -1,10 +1,8 @@
 package mouserun.game;
 
 import GUI.ClasificacionJframe;
-import agentes.AgenteLaberinto;
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
-import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
 import jade.lang.acl.ACLMessage;
@@ -13,8 +11,6 @@ import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import juegos.elementos.DetalleInforme;
 import juegos.elementos.GanadorPartida;
 import juegos.elementos.Jugador;
@@ -65,6 +61,8 @@ public class GameUI extends JFrame {
     private Ontology ontology;
     private final ContentManager manager;
 
+    private boolean yaAcabado;
+
     /**
      * Creates an instance of the GameUI.
      *
@@ -99,6 +97,8 @@ public class GameUI extends JFrame {
 
         this.mazePanels = new ImagedPanel[ancho][alto];
         this.maze = new Maze(ancho, alto);
+
+        this.yaAcabado = false;
 
         clasificacionGUI = new ClasificacionJframe(ancho, alto, mQuesos, tiempo, bombasM);
 
@@ -292,19 +292,22 @@ public class GameUI extends JFrame {
     }
 
     public void mostrarFIN(Partida partida) throws Codec.CodecException, OntologyException {
-        this.contenedor.completarObjetivoQuesos();
-        JLabel countDownLabel = new JLabel("");
-        countDownLabel.setForeground(Color.WHITE);
-        countDownLabel.setFont(new Font("San Serif", Font.PLAIN, 100));
-        container.add(countDownLabel);
-        countDownLabel.setText("Final");
-        Dimension preferred = countDownLabel.getPreferredSize();
-        int yy = (int) ((container.getHeight() - preferred.getHeight()) / 2);
-        int xx = (int) ((container.getWidth() - preferred.getWidth()) / 2);
+        if (!yaAcabado) {
+            yaAcabado = true;
+            this.contenedor.completarObjetivoQuesos();
+            JLabel countDownLabel = new JLabel("");
+            countDownLabel.setForeground(Color.WHITE);
+            countDownLabel.setFont(new Font("San Serif", Font.PLAIN, 100));
+            container.add(countDownLabel);
+            countDownLabel.setText("Final");
+            Dimension preferred = countDownLabel.getPreferredSize();
+            int yy = (int) ((container.getHeight() - preferred.getHeight()) / 2);
+            int xx = (int) ((container.getWidth() - preferred.getWidth()) / 2);
 
-        countDownLabel.setBounds(xx, yy, (int) preferred.getWidth(), (int) preferred.getHeight());
-        container.moveToFront(countDownLabel);
-        anunciarGanador(partida);
+            countDownLabel.setBounds(xx, yy, (int) preferred.getWidth(), (int) preferred.getHeight());
+            container.moveToFront(countDownLabel);
+            anunciarGanador(partida);
+        }
     }
 
     private int getGridLeft(int x) {

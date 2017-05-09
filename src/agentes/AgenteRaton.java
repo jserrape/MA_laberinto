@@ -32,7 +32,6 @@ import jade.proto.SubscriptionInitiator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import juegos.elementos.DetalleInforme;
@@ -42,7 +41,6 @@ import juegos.elementos.Jugador;
 import juegos.elementos.Partida;
 import juegos.elementos.PartidaAceptada;
 import juegos.elementos.Posicion;
-import juegos.elementos.Tablero;
 import laberinto.OntologiaLaberinto;
 import laberinto.elementos.EntornoLaberinto;
 import laberinto.elementos.EntregarJugada;
@@ -168,8 +166,8 @@ public class AgenteRaton extends Agent {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida());
-            mensajesPendientes.add("El entorno inicial es:\n    N:" + entornoActual.getNorte() + " S:" + entornoActual.getSur()
+            mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida()+"\n"
+                    + "El entorno inicial es:\n    N:" + entornoActual.getNorte() + " S:" + entornoActual.getSur()
                     + " O:" + entornoActual.getOeste() + " E:" + entornoActual.getEste());
 
             ///////////////////////////////////////////////////
@@ -220,8 +218,6 @@ public class AgenteRaton extends Agent {
         //Maneja la informacion enviada: INFORM
         @Override
         protected void handleInform(ACLMessage inform) {
-            mensajesPendientes.add("Me ha llegado un subscribe");
-
             try {
                 DetalleInforme detalle = (DetalleInforme) manager.extractContent(inform);
                 if (detalle.getDetalle() instanceof PosicionQueso) {
