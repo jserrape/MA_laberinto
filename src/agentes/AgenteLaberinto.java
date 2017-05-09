@@ -305,7 +305,7 @@ public class AgenteLaberinto extends Agent {
             }
 
             TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 400, id);//<--------------------------------------------200
-            myAgent.addBehaviour(new acabarPartida(this.getAgent(), contenedor.getTiempo() * 1000, tarea, contenedor.getLaberintoGUI()));
+            myAgent.addBehaviour(new acabarPartida(this.getAgent(), contenedor.getTiempo() * 1000, tarea, contenedor.getLaberintoGUI(),contenedor.getPartida()));
             myAgent.addBehaviour(tarea);
         }
 
@@ -360,7 +360,11 @@ public class AgenteLaberinto extends Agent {
                 mensajesPendientes.add(mensaj);
                 addBehaviour(new TareaJugarPartida(this.myAgent, msg, contenedor.getIdPartida()));
             } else {
-                contenedor.getLaberintoGUI().mostrarFIN();
+                try {
+                    contenedor.getLaberintoGUI().mostrarFIN(contenedor.getPartida());
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 this.stop();
             }
         }
@@ -516,16 +520,22 @@ public class AgenteLaberinto extends Agent {
 
         private TareaInicioRonda tarea;
         private GameUI labe;
+        private Partida partida;
 
-        public acabarPartida(Agent a, long period, TareaInicioRonda t, GameUI laberinto) {
+        public acabarPartida(Agent a, long period, TareaInicioRonda t, GameUI laberinto,Partida part) {
             super(a, period);
             this.tarea = t;
             this.labe = laberinto;
+            this.partida=part;
         }
 
         @Override
         protected void onTick() {
-            labe.mostrarFIN();
+            try {
+                labe.mostrarFIN(partida);
+            } catch (Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
             tarea.stop();
             this.stop();
         }

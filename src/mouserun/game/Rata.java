@@ -5,6 +5,7 @@
  */
 package mouserun.game;
 
+import jade.core.AID;
 import java.awt.Color;
 import java.io.IOException;
 import javax.swing.JLabel;
@@ -14,6 +15,13 @@ import javax.swing.JLabel;
  * @author jcsp0003
  */
 public class Rata {
+
+    /**
+     * @return the aid
+     */
+    public AID getAid() {
+        return aid;
+    }
 
     /**
      * @return the bombasColocadas
@@ -28,6 +36,8 @@ public class Rata {
     private ImagedPanel panel;
     private JLabel label;
     private int GRID_LENGTH = 30;
+    
+    private AID aid;
     
     private int bombasColocadas;
     
@@ -44,10 +54,11 @@ public class Rata {
      * @param _nombre Nombre del agente al que representa
      * @param _x Valor del eje x en que se crea
      * @param _y Valor del eje y en que se crea
+     * @param _aid
      * @throws IOException An IOException can occur when the required game
      * assets are missing.
      */
-    public Rata(String _nombre, int _x, int _y) throws IOException {
+    public Rata(String _nombre, int _x, int _y,AID _aid) throws IOException {
         this.izquierdaImg = "assets/mouseleft.png";
         this.derechaImg = "assets/mouseright.png";
         this.abajoImg = "assets/mousedown.png";
@@ -56,6 +67,8 @@ public class Rata {
         this.x = _x;
         this.y = _y;
         this.bombasColocadas=0;
+        this.aid=_aid;
+        
         panel = new ImagedPanel(derechaImg, GRID_LENGTH-5, GRID_LENGTH-5);
         panel.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
         panel.setOpaque(false);

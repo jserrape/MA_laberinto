@@ -149,8 +149,7 @@ public class AgenteRaton extends Agent {
             Laberinto tablero = proposicionPartida.getLaberinto();
             int bombasRestantes = tablero.getNumTrampasActivas();
             Posicion posicion = tablero.getPosicionInicio();
-            mensajesPendientes.add(posicion.toString());
-            
+
             EntornoLaberinto entornoActual = tablero.getEntornoInicio();
 
             PartidaAceptada pa = new PartidaAceptada(partida, jugador);
@@ -222,24 +221,28 @@ public class AgenteRaton extends Agent {
         @Override
         protected void handleInform(ACLMessage inform) {
             mensajesPendientes.add("Me ha llegado un subscribe");
-            DetalleInforme detalle = null;
-            
+
             try {
-                detalle = (DetalleInforme) manager.extractContent(inform);
+                DetalleInforme detalle = (DetalleInforme) manager.extractContent(inform);
+                if (detalle.getDetalle() instanceof PosicionQueso) {
+                    PosicionQueso pos = (PosicionQueso) detalle.getDetalle();
+                    ContenedorRaton contenedor = partidasIniciadas.get(pos.getPartida().getIdPartida());
+                    contenedor.cambiarQueso(pos.getPosicion());
+                } else {
+                    if (detalle.getDetalle() instanceof juegos.elementos.Error) {
+                        juegos.elementos.Error err = (juegos.elementos.Error) detalle.getDetalle();
+                        mensajesPendientes.add("Ha habido un error:\n  " + err.getDetalle());
+                    } else {
+                        if (detalle.getDetalle() instanceof GanadorPartida) {
+                            GanadorPartida ganador = (GanadorPartida) detalle.getDetalle();
+                            mensajesPendientes.add("Ha llegado un ganador de partida:\n     ID: " + detalle.getPartida().getIdPartida() + "\n     Ganador: " + ganador.getJugador().getNombre());
+                        } else {
+                            mensajesPendientes.add("No se ha podido identificar el tipo de objeto del subscribe");
+                        }
+                    }
+                }
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            if (detalle.getDetalle() instanceof PosicionQueso) {
-                PosicionQueso pos= (PosicionQueso) detalle.getDetalle();
-                mensajesPendientes.add("El queso ha cambiado de lugar: " + pos.toString());
-                ContenedorRaton contenedor = partidasIniciadas.get(pos.getPartida().getIdPartida());
-                contenedor.cambiarQueso(pos.getPosicion());
-            } else {
-                if (detalle.getDetalle() instanceof juegos.elementos.Error) {
-                    juegos.elementos.Error err = (juegos.elementos.Error) detalle.getDetalle();
-                    mensajesPendientes.add("Ha habido un error:\n  " + err.getDetalle());
-                }
             }
         }
 
@@ -274,7 +277,7 @@ public class AgenteRaton extends Agent {
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
-           // mensajesPendientes.add("Me ha llegado una peticion de ronda para la partida con id=" + p.getIdPartida());
+            // mensajesPendientes.add("Me ha llegado una peticion de ronda para la partida con id=" + p.getIdPartida());
 
             contenedor = partidasIniciadas.get(p.getIdPartida());
 
@@ -311,7 +314,6 @@ public class AgenteRaton extends Agent {
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
-         //   mensajesPendientes.add(resultado.toString());
             contenedor.setEntorno(resultado.getEntorno());
             Posicion posicionAux = resultado.getNuevaPosicion();
             if (posicionAux.getCoorX() != contenedor.getPosicion().getCoorX() || posicionAux.getCoorY() != contenedor.getPosicion().getCoorY()) {

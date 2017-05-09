@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import juegos.elementos.DetalleInforme;
+import juegos.elementos.GanadorPartida;
+import juegos.elementos.Jugador;
 import juegos.elementos.Partida;
 import juegos.elementos.Posicion;
 import laberinto.OntologiaLaberinto;
@@ -208,7 +210,7 @@ public class GameUI extends JFrame {
     public void generarRatones(ArrayList<ResultadoRaton> ratonesPartida) throws IOException {
         Rata rata;
         for (int i = 0; i < ratonesPartida.size(); i++) {
-            rata = new Rata(ratonesPartida.get(i).getNombre(), 0, alto - 1 - 0);
+            rata = new Rata(ratonesPartida.get(i).getNombre(), 0, alto - 1 - 0, ratonesPartida.get(i).getAidRaton());
             arrayRatas.add(rata);
             container.add(rata.getPanel());
             container.moveToFront(rata.getPanel());
@@ -230,7 +232,7 @@ public class GameUI extends JFrame {
                 PosicionQueso posicion = null;
                 for (int i = 0; i < jugadas.size(); i++) {
                     if (jugadas.get(i).getJugador().getNombre().equals(arrayRatas.get(j).getJLabel().getText())) {
-                        posicion = new PosicionQueso(part, new Posicion(getQuesito().getX(), alto - 1 -getQuesito().getY()), jugadas.get(i).getJugador());
+                        posicion = new PosicionQueso(part, new Posicion(getQuesito().getX(), alto - 1 - getQuesito().getY()), jugadas.get(i).getJugador());
                         i = jugadas.size();
                     }
                 }
@@ -238,7 +240,6 @@ public class GameUI extends JFrame {
                 Subscription suscripcion;
                 DetalleInforme quesoLogrado = new DetalleInforme(part, posicion);
 
-                posicion = new PosicionQueso();
                 for (int i = 0; i < arrayRatas.size(); i++) {
                     suscripcion = gestor.getSuscripcion(arrayRatas.get(i).getJLabel().getText());
 
@@ -255,18 +256,42 @@ public class GameUI extends JFrame {
                 }
 
                 if (arrayRatas.get(j).getQuesos() == this.maxQuesos) {
-                    mostrarFIN();
+                    mostrarFIN(part);
                 }
                 clasificacionGUI.crearClarificacion(arrayRatas);
             }
         }
     }
 
-    public void anunciarQueso() {
+    public void anunciarGanador(Partida partida) throws Codec.CodecException, OntologyException {
+        GanadorPartida ganador = new GanadorPartida(new Jugador(arrayRatas.get(0).getAid().getName(), arrayRatas.get(0).getAid()));
+        int puntos = arrayRatas.get(0).getQuesos();
+        for (int i = 1; i < arrayRatas.size(); i++) {
+            if (puntos < arrayRatas.get(i).getQuesos()) {
+                ganador = new GanadorPartida(new Jugador(arrayRatas.get(i).getAid().getName(), arrayRatas.get(i).getAid()));
+                puntos = arrayRatas.get(i).getQuesos();
+            }
+        }
+        Subscription suscripcion;
+        DetalleInforme ganadorPartida = new DetalleInforme(partida, ganador);
+        for (int i = 0; i < arrayRatas.size(); i++) {
+            suscripcion = gestor.getSuscripcion(arrayRatas.get(i).getJLabel().getText());
+
+            // Creamos el mensaje para enviar a los jugadores
+            ACLMessage msgGanador = new ACLMessage(ACLMessage.INFORM);
+            msgGanador.setLanguage(codec.getName());
+            msgGanador.setOntology(ontology.getName());
+
+            manager.fillContent(msgGanador, ganadorPartida);
+
+            if (suscripcion != null) {
+                suscripcion.notify(msgGanador);
+            }
+        }
 
     }
 
-    public void mostrarFIN() {
+    public void mostrarFIN(Partida partida) throws Codec.CodecException, OntologyException {
         this.contenedor.completarObjetivoQuesos();
         JLabel countDownLabel = new JLabel("");
         countDownLabel.setForeground(Color.WHITE);
@@ -279,6 +304,7 @@ public class GameUI extends JFrame {
 
         countDownLabel.setBounds(xx, yy, (int) preferred.getWidth(), (int) preferred.getHeight());
         container.moveToFront(countDownLabel);
+        anunciarGanador(partida);
     }
 
     private int getGridLeft(int x) {
