@@ -54,6 +54,7 @@ import juegos.elementos.Posicion;
 import juegos.elementos.Tablero;
 import laberinto.OntologiaLaberinto;
 import laberinto.elementos.EntornoLaberinto;
+import laberinto.elementos.EntregarJugada;
 import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.Laberinto;
 import laberinto.elementos.ProponerPartida;
@@ -342,7 +343,8 @@ public class AgenteLaberinto extends Agent {
                 }
                 msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
 
-                Action ac = new Action(this.myAgent.getAID(), contenedor.getPartida());
+                EntregarJugada pedirJugada = new EntregarJugada ( contenedor.getPartida());
+                Action ac = new Action(this.myAgent.getAID(), pedirJugada);
 
                 try {
                     manager.fillContent(msg, ac);

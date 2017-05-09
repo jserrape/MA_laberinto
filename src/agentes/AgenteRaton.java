@@ -3,6 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+//-container -host 192.168.37.159 -agents SerranoPerez:agentes.AgenteRaton;SerranoPerezC:agentes.AgenteConsola;
 package agentes;
 
 import jade.content.ContentManager;
@@ -42,6 +43,7 @@ import juegos.elementos.Posicion;
 import juegos.elementos.Tablero;
 import laberinto.OntologiaLaberinto;
 import laberinto.elementos.EntornoLaberinto;
+import laberinto.elementos.EntregarJugada;
 import laberinto.elementos.Jugada;
 import laberinto.elementos.JugadaEntregada;
 import laberinto.elementos.Laberinto;
@@ -241,9 +243,11 @@ public class AgenteRaton extends Agent {
         protected ACLMessage prepareResponse(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
             Action ac;
             Partida p = null;
+            EntregarJugada jug = null;
             try {
                 ac = (Action) manager.extractContent(cfp);
-                p = (Partida) ac.getAction();
+                jug = (EntregarJugada) ac.getAction();
+                p = jug.getPartida();
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -254,11 +258,13 @@ public class AgenteRaton extends Agent {
             Jugada jugada;
             if (contenedor.moverse()) {
                 jugada = new Jugada(OntologiaLaberinto.MOVIMIENTO, contenedor.getPosicion());
+                mensajesPendientes.add("Me muevo");
             } else {
                 jugada = new Jugada(OntologiaLaberinto.TRAMPA, contenedor.getPosicion());
             }
 
             JugadaEntregada jugEntregada = new JugadaEntregada(p, jugador, jugada);
+            mensajesPendientes.add(jugEntregada.toString());
 
             ACLMessage respuesta = cfp.createReply();
             respuesta.setPerformative(ACLMessage.PROPOSE);
@@ -284,7 +290,7 @@ public class AgenteRaton extends Agent {
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
-
+            mensajesPendientes.add(resultado.toString());
             contenedor.setEntorno(resultado.getEntorno());
             Posicion posicionAux = resultado.getNuevaPosicion();
             if (posicionAux.getCoorX() != contenedor.getPosicion().getCoorX() || posicionAux.getCoorY() != contenedor.getPosicion().getCoorY()) {
