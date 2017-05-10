@@ -77,8 +77,8 @@ public class GameUI extends JFrame {
      * assets are missing.
      * @throws java.lang.InterruptedException
      */
-    public GameUI(int ancho, int alto, int mQuesos, int tiempo, int bombasM, ContenedorLaberinto cont, GestorSuscripciones ge, Codec co, Ontology ont, ContentManager ma) throws IOException, InterruptedException {
-        super("Agente raton de UJAtaco");
+    public GameUI(String id,int ancho, int alto, int mQuesos, int tiempo, int bombasM, ContenedorLaberinto cont, GestorSuscripciones ge, Codec co, Ontology ont, ContentManager ma) throws IOException, InterruptedException {
+        super(id);
         GRID_LENGTH = 30;
 
         arrayBombas = new ArrayList();
@@ -178,6 +178,10 @@ public class GameUI extends JFrame {
                                 clasificacionGUI.crearClarificacion(arrayRatas);
                             }
                         }
+                    }
+                    if (arrayRatas.get(j).getX() < 0 || alto - 1 - arrayRatas.get(j).getY() < 0 || arrayRatas.get(j).getX() >= ancho || alto - 1 - arrayRatas.get(j).getY() >= alto) {
+                        System.out.println(arrayRatas.get(j).getX() + " " + (alto - 1 - arrayRatas.get(j).getY()));
+                        System.out.println(part.toString());
                     }
                     EntornoLaberinto ent = getEntorno(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
                     Posicion pos = new Posicion(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());

@@ -331,6 +331,7 @@ public class AgenteLaberinto extends Agent {
         @Override
         public void onTick() {
             if (!contenedor.isObjetivoQuesos()) {
+                System.out.println("Ronda nueva");
                 ACLMessage msg = new ACLMessage(ACLMessage.CFP);
                 msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
                 msg.setSender(getAID());
@@ -358,6 +359,7 @@ public class AgenteLaberinto extends Agent {
                 mensajesPendientes.add(mensaj);
                 addBehaviour(new TareaJugarPartida(this.myAgent, msg, contenedor.getIdPartida()));
             } else {
+                System.out.println("Final");
                 try {
                     contenedor.getLaberintoGUI().mostrarFIN(contenedor.getPartida());
                 } catch (Codec.CodecException | OntologyException ex) {

@@ -52,7 +52,7 @@ public class ContenedorLaberinto {
 
         partida = new Partida(idPartida, OntologiaLaberinto.TIPO_JUEGO);
 
-        laberintoGUI = new GameUI(getAncho(), getAlto(), getQuesosMax(), getTiempo(), getMaxTrampas(),this,ge,co,ont,ma);
+        laberintoGUI = new GameUI(idPartida,getAncho(), getAlto(), getQuesosMax(), getTiempo(), getMaxTrampas(),this,ge,co,ont,ma);
         laberintoGUI.setVisible(true);
 
         objetivoQuesos = false;
