@@ -77,7 +77,7 @@ public class GameUI extends JFrame {
      * assets are missing.
      * @throws java.lang.InterruptedException
      */
-    public GameUI(String id,int ancho, int alto, int mQuesos, int tiempo, int bombasM, ContenedorLaberinto cont, GestorSuscripciones ge, Codec co, Ontology ont, ContentManager ma) throws IOException, InterruptedException {
+    public GameUI(String id, int ancho, int alto, int mQuesos, int tiempo, int bombasM, ContenedorLaberinto cont, GestorSuscripciones ge, Codec co, Ontology ont, ContentManager ma) throws IOException, InterruptedException {
         super(id);
         GRID_LENGTH = 30;
 
@@ -169,8 +169,8 @@ public class GameUI extends JFrame {
                     for (int z = 0; z < arrayBombas.size(); z++) {
                         if (!arrayBombas.get(z).getLabel().getText().equals(arrayRatas.get(j).getJLabel().getText())) {
                             if (arrayBombas.get(z).getX() == arrayRatas.get(j).getX() && arrayBombas.get(z).getY() == arrayRatas.get(j).getY()) { //Esta rata debe morir
-                                int xx = (int) (Math.random() * alto);
-                                int yy = (int) (Math.random() * ancho);
+                                int xx = (int) (Math.random() * ancho);
+                                int yy = (int) (Math.random() * alto);
                                 arrayRatas.get(j).setPosicion(xx, yy);
                                 arrayBombas.get(z).explotar();
                                 arrayBombas.remove(z);
@@ -179,9 +179,22 @@ public class GameUI extends JFrame {
                             }
                         }
                     }
-                    if (arrayRatas.get(j).getX() < 0 || alto - 1 - arrayRatas.get(j).getY() < 0 || arrayRatas.get(j).getX() >= ancho || alto - 1 - arrayRatas.get(j).getY() >= alto) {
-                        System.out.println(arrayRatas.get(j).getX() + " " + (alto - 1 - arrayRatas.get(j).getY()));
-                        System.out.println(part.toString());
+
+                    if (arrayRatas.get(j).getX() < 0) {
+                        arrayRatas.get(j).setPosicion(0, arrayRatas.get(j).getY());
+                        System.out.println(1);
+                    }
+                    if (alto - 1 - arrayRatas.get(j).getY() < 0) {
+                        arrayRatas.get(j).setPosicion(arrayRatas.get(j).getX(), 0);
+                        System.out.println(2);
+                    }
+                    if (arrayRatas.get(j).getX() >= ancho) {
+                        arrayRatas.get(j).setPosicion(ancho - 1, arrayRatas.get(j).getY());
+                        System.out.println(3);
+                    }
+                    if (alto - 1 - arrayRatas.get(j).getY() >= alto) {
+                        arrayRatas.get(j).setPosicion(arrayRatas.get(j).getX(), alto - 1);
+                        System.out.println(4);
                     }
                     EntornoLaberinto ent = getEntorno(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
                     Posicion pos = new Posicion(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());

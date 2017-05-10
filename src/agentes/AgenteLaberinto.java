@@ -331,7 +331,6 @@ public class AgenteLaberinto extends Agent {
         @Override
         public void onTick() {
             if (!contenedor.isObjetivoQuesos()) {
-                System.out.println("Ronda nueva");
                 ACLMessage msg = new ACLMessage(ACLMessage.CFP);
                 msg.setProtocol(FIPANames.InteractionProtocol.FIPA_CONTRACT_NET);
                 msg.setSender(getAID());
