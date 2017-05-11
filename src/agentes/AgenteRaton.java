@@ -31,6 +31,7 @@ import jade.proto.ProposeResponder;
 import jade.proto.SubscriptionInitiator;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -71,10 +72,13 @@ public class AgenteRaton extends Agent {
     private Ontology ontologia;
     private ContentManager manager = (ContentManager) getContentManager();
 
+    private Map<String, InformarPartidaSubscribe> subscribes;
+
     @Override
     protected void setup() {
         mensajesPendientes = new ArrayList();
         partidasIniciadas = new HashMap<>();
+        subscribes = new HashMap<>();
 
         DFAgentDescription dfd = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
@@ -121,6 +125,13 @@ public class AgenteRaton extends Agent {
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
+
+        Iterator<Map.Entry<String, InformarPartidaSubscribe>> entries = subscribes.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry<String, InformarPartidaSubscribe> entry = entries.next();
+            entry.getValue().desRegistrarse();
+        }
+
         System.out.println("Finaliza la ejecución del agente: " + this.getName());
     }
 
@@ -166,38 +177,42 @@ public class AgenteRaton extends Agent {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida()+"\n"
+            mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida() + "\n"
                     + "El entorno inicial es:\n    N:" + entornoActual.getNorte() + " S:" + entornoActual.getSur()
                     + " O:" + entornoActual.getOeste() + " E:" + entornoActual.getEste());
 
             ///////////////////////////////////////////////////
-            InformarPartida inf = new InformarPartida(jugador);
-            ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
-            mensaje.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
-            mensaje.setSender(this.myAgent.getAID());
-            mensaje.setLanguage(codec.getName());
-            mensaje.setOntology(ontologia.getName());
+            if (!subscribes.containsKey(propuesta.getSender().getName())) {
+                InformarPartida inf = new InformarPartida(jugador);
+                ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
+                mensaje.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
+                mensaje.setSender(this.myAgent.getAID());
+                mensaje.setLanguage(codec.getName());
+                mensaje.setOntology(ontologia.getName());
+                mensaje.addReceiver(propuesta.getSender());
 
-            Action action = new Action(getAID(), inf);
-            try {
-                manager.fillContent(mensaje, action);
-            } catch (Codec.CodecException | OntologyException ex) {
-                Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+                try {
+                    Action action = new Action(getAID(), inf);
+                    manager.fillContent(mensaje, action);
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                InformarPartidaSubscribe tarea = new InformarPartidaSubscribe(this.myAgent, mensaje);
+                subscribes.put(propuesta.getSender().getName(), tarea);
+
+                addBehaviour(tarea);
+            } else {
+                System.out.println("Ya estaba jugando");
             }
-
-            //Se añade el destinatario del mensaje
-            AID id = new AID();
-            id.setLocalName(OntologiaLaberinto.REGISTRO_LABERINTO);
-            mensaje.addReceiver(id);
-
-            //ME REGISTRO AL SUBSCRIBE
-            addBehaviour(new InformarPartidaSubscribe(this.myAgent, mensaje));
 
             return agree;
         }
     }
 
     private class InformarPartidaSubscribe extends SubscriptionInitiator {
+
+        private AID sender;
 
         public InformarPartidaSubscribe(Agent agente, ACLMessage mensaje) {
             super(agente, mensaje);
@@ -207,6 +222,7 @@ public class AgenteRaton extends Agent {
         @Override
         protected void handleAgree(ACLMessage inform) {
             mensajesPendientes.add("Mi subscripcion a la plataforma ha sido aceptada");
+            this.sender = inform.getSender();
         }
 
         // Maneja la respuesta en caso que rechace: REFUSE
@@ -240,6 +256,14 @@ public class AgenteRaton extends Agent {
             } catch (Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+
+        public void desRegistrarse() {
+            //Enviamos la cancelación de la suscripcion
+            this.cancel(sender, false);
+
+            //Comprobamos que se ha cancelado correctamente
+            this.cancellationCompleted(sender);
         }
 
         //Maneja la respuesta en caso de fallo: FAILURE

@@ -351,11 +351,6 @@ public class AgenteLaberinto extends Agent {
                     Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                String mensaj = "Se ha pedido una jugada a los agentes:\n";
-                for (int i = 0; i < contenedor.getRatonesPartida().size(); i++) {
-                    mensaj += "   " + contenedor.getRatonesPartida().get(i).getNombre() + "\n";
-                }
-                mensajesPendientes.add(mensaj);
                 addBehaviour(new TareaJugarPartida(this.myAgent, msg, contenedor.getIdPartida()));
             } else {
                 System.out.println("Final");
@@ -380,7 +375,6 @@ public class AgenteLaberinto extends Agent {
 
         @Override
         protected void handleAllResponses(Vector responses, Vector acceptances) {
-            String resultado = "Recibidos los siguientes movimiento:";
             JugadaEntregada jugada = null;
             List<JugadaEntregada> jugadas = new ArrayList();
             ACLMessage respuesta;
@@ -396,9 +390,7 @@ public class AgenteLaberinto extends Agent {
                 respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
                 acceptances.add(respuesta);
                 jugadas.add(jugada);
-                resultado += "\n    Jugador: " + jugada.getJugador().getNombre() + " Accion: " + jugada.getAccion().getJugada();
             }
-            mensajesPendientes.add(resultado);
 
             List<ResultadoJugada> resultados = null;
             try {
@@ -406,7 +398,6 @@ public class AgenteLaberinto extends Agent {
             } catch (IOException | Codec.CodecException | OntologyException ex) {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
-            mensajesPendientes.add("Se han generado " + resultados.size() + " resultados de las " + jugadas.size() + " jugadas.");
             ACLMessage msgg;
             for (int i = 0; i < jugadas.size(); i++) {
                 msgg = (ACLMessage) acceptances.get(i);
