@@ -181,7 +181,7 @@ public class AgenteRaton extends Agent {
                     + "El entorno inicial es:\n    N:" + entornoActual.getNorte() + " S:" + entornoActual.getSur()
                     + " O:" + entornoActual.getOeste() + " E:" + entornoActual.getEste());
 
-            ///////////////////////////////////////////////////
+
             if (!subscribes.containsKey(propuesta.getSender().getName())) {
                 InformarPartida inf = new InformarPartida(jugador);
                 ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
@@ -202,8 +202,6 @@ public class AgenteRaton extends Agent {
                 subscribes.put(propuesta.getSender().getName(), tarea);
 
                 addBehaviour(tarea);
-            } else {
-                System.out.println("Ya estaba jugando");
             }
 
             return agree;

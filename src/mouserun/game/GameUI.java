@@ -78,7 +78,7 @@ public class GameUI extends JFrame {
      * @throws java.lang.InterruptedException
      */
     public GameUI(String id, int ancho, int alto, int mQuesos, int tiempo, int bombasM, ContenedorLaberinto cont, GestorSuscripciones ge, Codec co, Ontology ont, ContentManager ma) throws IOException, InterruptedException {
-        super(id);
+        super("Interfaz: "+id);
         GRID_LENGTH = 30;
 
         arrayBombas = new ArrayList();
@@ -100,7 +100,7 @@ public class GameUI extends JFrame {
 
         this.yaAcabado = false;
 
-        clasificacionGUI = new ClasificacionJframe(ancho, alto, mQuesos, tiempo, bombasM);
+        clasificacionGUI = new ClasificacionJframe(ancho, alto, mQuesos, tiempo, bombasM,id);
 
         initialiseUI();
     }

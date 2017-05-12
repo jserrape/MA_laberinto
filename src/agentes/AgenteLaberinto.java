@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-// -gui -agents rata1:agentes.AgenteRaton;rata2:agentes.AgenteRaton;rata3:agentes.AgenteRaton;rata4:agentes.AgenteRaton;rata5:agentes.AgenteRaton;rata6:agentes.AgenteRaton;rata7:agentes.AgenteRaton;rata8:agentes.AgenteRaton;rata9:agentes.AgenteRaton;;laberinto:agentes.AgenteLaberinto;
+// -gui -agents rata1:agentes.AgenteRaton;rata2:agentes.AgenteRaton;rata3:agentes.AgenteRaton;rata4:agentes.AgenteRaton;rata5:agentes.AgenteRaton;rata6:agentes.AgenteRaton;rata7:agentes.AgenteRaton;rata8:agentes.AgenteRaton;rata9:agentes.AgenteRaton;rata10:agentes.AgenteRaton;rata12:agentes.AgenteRaton;rata13:agentes.AgenteRaton;rata14:agentes.AgenteRaton;rata15:agentes.AgenteRaton;rata16:agentes.AgenteRaton;rata17:agentes.AgenteRaton;rata18:agentes.AgenteRaton;rata11:agentes.AgenteRaton;laberinto:agentes.AgenteLaberinto;
 // -gui -agents rata1:agentes.AgenteRaton;laberinto:agentes.AgenteLaberinto;consola:agentes.AgenteConsola;
 // -gui -agents rata1:agentes.AgenteRaton;rata2:agentes.AgenteRaton;rata3:agentes.AgenteRaton;laberinto:agentes.AgenteLaberinto;consola:agentes.AgenteConsola;
 package agentes;
