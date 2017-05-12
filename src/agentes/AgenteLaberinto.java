@@ -136,6 +136,16 @@ public class AgenteLaberinto extends Agent {
         System.out.println("Finaliza la ejecución del agente: " + this.getName());
     }
 
+    /**
+     * Inicializa un juego con ratones y un laberinto
+     * @param t tiempo de juego
+     * @param mq máximo de quesos a capturar
+     * @param mt máximo de trampas a usar por cada ratón
+     * @param alt altura del laberinto
+     * @param anc anchura del laberinto
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void empezarSistema(int t, int mq, int mt, int alt, int anc) throws IOException, InterruptedException {
         ++numPartida;
         String iid = this.getName() + numPartida;
@@ -197,6 +207,9 @@ public class AgenteLaberinto extends Agent {
         }
     }
 
+    /**
+     * Tarea encargada de lanzar una nueva partida 
+    */
     public class TareaNuevaPartida extends OneShotBehaviour {
 
         private String id;
@@ -255,6 +268,9 @@ public class AgenteLaberinto extends Agent {
         }
     }
 
+    /**
+     * Tarea encargada de enviar una proposición de juego a los ratones encontrados
+     */
     public class TareaProponerPartida extends ProposeInitiator {
 
         private String id;
@@ -414,6 +430,9 @@ public class AgenteLaberinto extends Agent {
 
     }
 
+    /**
+     * Tarea encargada de buscar agentes consola y agentes ratón
+     */
     public class TareaBuscarAgentes extends TickerBehaviour {
 
         //Se buscarán agentes consola y operación
@@ -475,6 +494,9 @@ public class AgenteLaberinto extends Agent {
         }
     }
 
+    /**
+     * Tarea que se encarga de enviar los mensajes de mensajesPendientes a las consolas encontradas
+     */
     public class TareaEnvioConsola extends TickerBehaviour {
 
         public TareaEnvioConsola(Agent a, long period) {
@@ -506,6 +528,9 @@ public class AgenteLaberinto extends Agent {
         }
     }
 
+    /**
+     * Tarea que se lanza cuando el juego ha acabado y da un ganador
+     */
     public class acabarPartida extends TickerBehaviour {
 
         private TareaInicioRonda tarea;

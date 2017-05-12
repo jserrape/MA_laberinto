@@ -68,9 +68,9 @@ public class AgenteRaton extends Agent {
     private ArrayList<String> mensajesPendientes;
 
     //Elementos para la ontologia
-    private Codec codec = new SLCodec();
+    private final Codec codec = new SLCodec();
     private Ontology ontologia;
-    private ContentManager manager = (ContentManager) getContentManager();
+    private final ContentManager manager = (ContentManager) getContentManager();
 
     private Map<String, InformarPartidaSubscribe> subscribes;
 
@@ -352,6 +352,9 @@ public class AgenteRaton extends Agent {
         }
     }
 
+    /**
+     * Tarea que busca agentes consola por donde se mostrarán los mensajes de mensajesPendientes
+     */
     public class TareaBuscarConsolas extends TickerBehaviour {
 
         //Se buscarán agentes consola y operación
@@ -388,6 +391,9 @@ public class AgenteRaton extends Agent {
         }
     }
 
+    /**
+     * Tarea que se encarga de enviar los mensajes de mensajesPendientes a las consolas encontradas
+     */
     public class TareaEnvioConsola extends TickerBehaviour {
 
         public TareaEnvioConsola(Agent a, long period) {
