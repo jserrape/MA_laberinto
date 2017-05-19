@@ -90,6 +90,9 @@ public class AgenteLaberinto extends Agent {
     // Valores por defecto
     private final long TIME_OUT = 300; // 2seg
 
+    /**
+     * Funcion para la inicializacion de variables y de las tareas basicas
+     */
     @Override
     protected void setup() {
         //Inicializar variables del agente
@@ -122,13 +125,15 @@ public class AgenteLaberinto extends Agent {
         addBehaviour(eventosLaberinto);
     }
 
+    /**
+     * Funcion de final del agente
+     */
     @Override
     protected void takeDown() {
         //Desregristo del agente de las Páginas Amarillas
         try {
             DFService.deregister(this);
         } catch (FIPAException fe) {
-            fe.printStackTrace();
         }
         //Liberación de recursos, incluido el GUI
 
@@ -155,18 +160,38 @@ public class AgenteLaberinto extends Agent {
         addBehaviour(new TareaNuevaPartida(iid));
     }
 
+    /**
+     * Tarea para gestionar las suscripciones
+     */
     class TareaInformarPartida extends SubscriptionResponder {
 
         private Subscription suscripcionJugador;
 
+        /**
+         * Constructor parametrizado
+         * @param a Agente padre
+         * @param mt Plantilla mensaje
+         */
         public TareaInformarPartida(Agent a, MessageTemplate mt) {
             super(a, mt);
         }
 
+        /**
+         * Constructor parametrizado
+         * @param a Agente padre
+         * @param mt Plantilla mensaje
+         */
         public TareaInformarPartida(Agent a, MessageTemplate mt, SubscriptionManager sm) {
             super(a, mt, sm);
         }
 
+        /**
+         * Llegada de una peticion de nueva suscripcion
+         * @param subscription Peticion de suscripcion
+         * @return Mensaje AGREE
+         * @throws NotUnderstoodException
+         * @throws RefuseException 
+         */
         @Override
         protected ACLMessage handleSubscription(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
 
@@ -192,6 +217,12 @@ public class AgenteLaberinto extends Agent {
             return agree;
         }
 
+        /**
+         * Peticion para eliminar suscripcion
+         * @param cancel Mensaje de cancelacion
+         * @return null
+         * @throws FailureException 
+         */
         @Override
         protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
 
@@ -212,12 +243,19 @@ public class AgenteLaberinto extends Agent {
     */
     public class TareaNuevaPartida extends OneShotBehaviour {
 
-        private String id;
+        private final String id;
 
+        /**
+         * Constructor parametrizado
+         * @param _id Id de la nueva partida
+         */
         public TareaNuevaPartida(String _id) {
             this.id = _id;
         }
 
+        /**
+         * Funcion de generacion de partida
+         */
         @Override
         public void action() {
             ContenedorLaberinto contenedor = partidasIniciadas.get(id);
@@ -273,13 +311,23 @@ public class AgenteLaberinto extends Agent {
      */
     public class TareaProponerPartida extends ProposeInitiator {
 
-        private String id;
+        private final String id;
 
+        /**
+         * Tarea de proposicion de partida
+         * @param agente Agente padre
+         * @param msg Plantilla
+         * @param _id Id de la partida
+         */
         public TareaProponerPartida(Agent agente, ACLMessage msg, String _id) {
             super(agente, msg);
             this.id = _id;
         }
 
+        /**
+         * Lectura de los agentes que han aceptado la proposicionde jugar partida
+         * @param responses Respuestas de los agentes
+         */
         @Override
         protected void handleAllResponses(Vector responses) {
             ContenedorLaberinto contenedor = partidasIniciadas.get(id);
@@ -335,15 +383,27 @@ public class AgenteLaberinto extends Agent {
 
     }
 
+    /**
+     * Tarea ciclica para iniciar rondas
+     */
     class TareaInicioRonda extends TickerBehaviour {
 
-        private ContenedorLaberinto contenedor;
+        private final ContenedorLaberinto contenedor;
 
+        /**
+         * Constructor parametrizado
+         * @param a Agente padre
+         * @param period Periodo de repeticion
+         * @param id Id de la partida
+         */
         public TareaInicioRonda(Agent a, long period, String id) {
             super(a, period);
             this.contenedor = partidasIniciadas.get(id);
         }
 
+        /**
+         * Funcion encargada de iniciar las rondas de juego o finalizar eljuego
+         */
         @Override
         public void onTick() {
             if (!contenedor.isObjetivoQuesos()) {
@@ -380,9 +440,12 @@ public class AgenteLaberinto extends Agent {
         }
     }
 
+    /**
+     * Tarea encargada de la negociacion de las jugadas
+     */
     class TareaJugarPartida extends ContractNetInitiator {
 
-        private ContenedorLaberinto contenedor;
+        private final ContenedorLaberinto contenedor;
 
         public TareaJugarPartida(Agent a, ACLMessage cfp, String id) {
             super(a, cfp);
@@ -533,10 +596,18 @@ public class AgenteLaberinto extends Agent {
      */
     public class acabarPartida extends TickerBehaviour {
 
-        private TareaInicioRonda tarea;
-        private GameUI labe;
-        private Partida partida;
+        private final TareaInicioRonda tarea;
+        private final GameUI labe;
+        private final Partida partida;
 
+        /**
+         * Constructor parametrizado
+         * @param a Agente padre
+         * @param period Periodo tras el que se lanza
+         * @param t Tarea encargada de iniciar las rondas
+         * @param laberinto Interfaz del laberinto
+         * @param part Partida
+         */
         public acabarPartida(Agent a, long period, TareaInicioRonda t, GameUI laberinto,Partida part) {
             super(a, period);
             this.tarea = t;
@@ -544,6 +615,9 @@ public class AgenteLaberinto extends Agent {
             this.partida=part;
         }
 
+        /**
+         * Tarea periodica para finalizar la partida
+         */
         @Override
         protected void onTick() {
             try {
