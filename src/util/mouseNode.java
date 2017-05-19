@@ -8,8 +8,7 @@ package util;
 /**
  *
  * @author jcsp0003
- */
-/**
+ *
  * Almacena una posición(x,y) y las direcciones accesibles desde la misma. Esto
  * último, solo será válido si el nodo está marcado como explored.
  */

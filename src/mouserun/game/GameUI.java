@@ -38,27 +38,27 @@ public class GameUI extends JFrame {
         return quesito;
     }
 
-    private Maze maze;
+    private final Maze maze;
     private int GRID_LENGTH = 30;
-    private ImagedPanel[][] mazePanels;
+    private final ImagedPanel[][] mazePanels;
     private JLayeredPane container;
 
-    private ClasificacionJframe clasificacionGUI;
-    private ContenedorLaberinto contenedor;
+    private final ClasificacionJframe clasificacionGUI;
+    private final ContenedorLaberinto contenedor;
 
     //Ratas y queso
     private Queso quesito;
     private ArrayList<Rata> arrayRatas;
-    private ArrayList<Bomba> arrayBombas;
+    private final ArrayList<Bomba> arrayBombas;
 
-    private int ancho;
-    private int alto;
+    private final int ancho;
+    private final int alto;
 
-    private int maxQuesos;
+    private final int maxQuesos;
 
-    private GestorSuscripciones gestor;
-    private Codec codec;
-    private Ontology ontology;
+    private final GestorSuscripciones gestor;
+    private final Codec codec;
+    private final Ontology ontology;
     private final ContentManager manager;
 
     private boolean yaAcabado;
@@ -66,13 +66,17 @@ public class GameUI extends JFrame {
     /**
      * Creates an instance of the GameUI.
      *
-     * @param ancho The width of the user interface.
-     * @param alto The height of the user interface.
-     * @param mQuesos
-     * @param tiempo
-     * @param bombasM
-     * @param cont
-     * @param ge
+     * @param id Identificador de la partida
+     * @param ancho Ancho del laberinto
+     * @param alto Alto del laberinto
+     * @param mQuesos Objetivo de quesos a lograr en la partida
+     * @param tiempo Tiempo maximo de la partida
+     * @param bombasM Bombas maximas que puede colocar un raton
+     * @param cont Estyructura de control del laberinto
+     * @param ge Gestor de uscripciones
+     * @param co Codec
+     * @param ont Ontologia del laberinto
+     * @param ma Content Manager
      * @throws IOException An IOException can occur when the required game
      * assets are missing.
      * @throws java.lang.InterruptedException
@@ -145,10 +149,25 @@ public class GameUI extends JFrame {
 
     }
 
+    /**
+     * 
+     * @param x Posicion x
+     * @param y Posicion y
+     * @return Entorno de una posicion del laberinto
+     */
     public EntornoLaberinto getEntorno(int x, int y) {
         return maze.getGrid(x, y).getEntorno();
     }
 
+    /**
+     * Gestion del los turnos
+     * @param jugadas Lista con las jugadas de los ratones en este turno
+     * @param part Partida a la que le corresponde
+     * @return Resultado de las jugadas
+     * @throws IOException
+     * @throws jade.content.lang.Codec.CodecException
+     * @throws OntologyException 
+     */
     public java.util.List<ResultadoJugada> hacerJugadas(java.util.List<JugadaEntregada> jugadas, Partida part) throws IOException, Codec.CodecException, OntologyException {
         java.util.List<ResultadoJugada> nuevosEntornos;
         nuevosEntornos = new ArrayList();
@@ -207,6 +226,10 @@ public class GameUI extends JFrame {
         return nuevosEntornos;
     }
 
+    /**
+     * Creacion de un nuevo queso
+     * @throws IOException 
+     */
     public void nuevoQueso() throws IOException {
         int x = (int) (Math.random() * alto);
         int y = (int) (Math.random() * ancho);
@@ -215,6 +238,13 @@ public class GameUI extends JFrame {
         container.moveToFront(getQuesito().getPanel());
     }
 
+    /**
+     * Creacion de una nueva trampa
+     * @param x Posicion x
+     * @param y Posicion y
+     * @param creador Identificador del creador de la trampa
+     * @throws IOException 
+     */
     public void nuevaTrampa(int x, int y, String creador) throws IOException {
         Bomba bomb = new Bomba(x, y, creador);
         container.add(bomb.getPanel());
@@ -224,6 +254,11 @@ public class GameUI extends JFrame {
         arrayBombas.add(bomb);
     }
 
+    /**
+     * Funcion para crear los ratrones que participan en la partida
+     * @param ratonesPartida Lista con todos los ratones
+     * @throws IOException 
+     */
     public void generarRatones(ArrayList<ResultadoRaton> ratonesPartida) throws IOException {
         Rata rata;
         for (int i = 0; i < ratonesPartida.size(); i++) {
@@ -237,6 +272,14 @@ public class GameUI extends JFrame {
         clasificacionGUI.crearClarificacion(arrayRatas);
     }
 
+    
+    /**
+     * Comprueba si algun raton ha logrado un queso, e informa a los demas de ello
+     * @param jugadas Jugadas de los ratones
+     * @param part Identificador de la partida
+     * @throws jade.content.lang.Codec.CodecException
+     * @throws OntologyException 
+     */
     public void comprobarQueso(java.util.List<JugadaEntregada> jugadas, Partida part) throws Codec.CodecException, OntologyException {
         for (int j = 0; j < arrayRatas.size(); j++) {
             if (arrayRatas.get(j).getX() == getQuesito().getX() && arrayRatas.get(j).getY() == getQuesito().getY()) {
@@ -280,6 +323,12 @@ public class GameUI extends JFrame {
         }
     }
 
+    /**
+     * Funcion pàra informar a los ratones de que alguien ha logrado un queso
+     * @param partida Partida en la que se juega
+     * @throws jade.content.lang.Codec.CodecException
+     * @throws OntologyException 
+     */
     public void anunciarGanador(Partida partida) throws Codec.CodecException, OntologyException {
         GanadorPartida ganador = new GanadorPartida(new Jugador(arrayRatas.get(0).getAid().getName(), arrayRatas.get(0).getAid()));
         int puntos = arrayRatas.get(0).getQuesos();
@@ -308,6 +357,13 @@ public class GameUI extends JFrame {
 
     }
 
+    
+    /**
+     * Finaliza la partida
+     * @param partida Elemento partida
+     * @throws jade.content.lang.Codec.CodecException
+     * @throws OntologyException 
+     */
     public void mostrarFIN(Partida partida) throws Codec.CodecException, OntologyException {
         if (!yaAcabado) {
             yaAcabado = true;

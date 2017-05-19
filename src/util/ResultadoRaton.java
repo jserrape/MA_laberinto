@@ -9,6 +9,7 @@ import jade.core.AID;
 import juegos.elementos.Posicion;
 
 /**
+ * Clase de control de estado de cada raton
  *
  * @author jcsp0003
  */
@@ -19,6 +20,12 @@ public class ResultadoRaton {
     private Posicion pos;
     private int quesos;
 
+    /**
+     * Constructor parametrizado
+     *
+     * @param aidRaton AID del agente raton
+     * @param nombre Nombre identificativo del agente raton
+     */
     public ResultadoRaton(AID aidRaton, String nombre) {
         this.aidRaton = aidRaton;
         this.nombre = nombre;

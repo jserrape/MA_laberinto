@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 import juegos.elementos.Partida;
 import juegos.elementos.Posicion;
@@ -24,9 +23,9 @@ import laberinto.elementos.Laberinto;
 public class ContenedorRaton {
 
     //Elementos de la partida
-    private String id;
-    private Partida partida;
-    private Laberinto tablero;
+    private final String id;
+    private final Partida partida;
+    private final Laberinto tablero;
     private Posicion posicion;
     private EntornoLaberinto entornoActual;
 
@@ -44,6 +43,16 @@ public class ContenedorRaton {
 
     private boolean informativeSearch;
 
+    /**
+     * Constructor parametrizado
+     *
+     * @param _id Identificador de la partida
+     * @param _partida Partida a la que se está jugando
+     * @param _tablero Tablero en el que se está jugando
+     * @param _posicionQ Posicion inicial del queso
+     * @param _entornoActual Entorno de la posicion actual
+     * @param _bombasRestantes Bombas maximas que puede poner
+     */
     public ContenedorRaton(String _id, Partida _partida, Laberinto _tablero, Posicion _posicionQ, EntornoLaberinto _entornoActual, int _bombasRestantes) {
         this.id = _id;
         this.partida = _partida;
@@ -60,21 +69,21 @@ public class ContenedorRaton {
 
         nuevoQueso = false;
         muerto = false;
-
     }
 
     /**
+     * Funcion para moverse
      *
-     * @return true si no pongo bomba, false si la pongo
+     * @return true si no pongo bomba, false si me muevo
      */
     public boolean moverse() {
-        
-        if(nuevoQueso || muerto ){
-            nuevoQueso=false;
-            muerto=false;
+
+        if (nuevoQueso || muerto) {
+            nuevoQueso = false;
+            muerto = false;
             reinicio();
         }
-        
+
         //Creamos un Pair, con la posición actual y una referancia a un mouseNode
         Pair<Integer, Integer> currentPos = new Pair<>(posicion.getCoorX(), posicion.getCoorY());
         mouseNode currentNode;
@@ -176,11 +185,11 @@ public class ContenedorRaton {
         return true;
     }
 
-    public void reinicio() {
+    private void reinicio() {
         camino.clear();
     }
 
-    void getCamino(mouseNode rootNode, Pair<Integer, Integer> target) {
+    private void getCamino(mouseNode rootNode, Pair<Integer, Integer> target) {
         List<Pair<Integer, mouseNode>> candidatos = new ArrayList<>(); //Guarda la profundidad del nodo y el nodo
         HashMap<Pair<Integer, Integer>, mouseNode> anteriores = new HashMap<>();
         mouseNode targetNode = null;
@@ -226,7 +235,7 @@ public class ContenedorRaton {
 
     }
 
-    void busquedaAStar(mouseNode rootNode, Pair<Integer, Integer> target, HashMap<Pair<Integer, Integer>, mouseNode> anteriores) {
+    private void busquedaAStar(mouseNode rootNode, Pair<Integer, Integer> target, HashMap<Pair<Integer, Integer>, mouseNode> anteriores) {
         List<Pair<Integer, mouseNode>> abiertos = new LinkedList<>();
         HashMap<Pair<Integer, Integer>, mouseNode> cerrados = new HashMap<>();
 
@@ -468,7 +477,7 @@ public class ContenedorRaton {
         return minPos;
     }
 
-    int distanciaManhattam(Pair<Integer, Integer> init, Pair<Integer, Integer> target) {
+    private int distanciaManhattam(Pair<Integer, Integer> init, Pair<Integer, Integer> target) {
         return (Math.abs(target.first - init.first)) + (Math.abs(target.second - init.second));
     }
 
@@ -492,7 +501,7 @@ public class ContenedorRaton {
         }
     }
 
-    public boolean movimientoValido(int direccion) {
+    private boolean movimientoValido(int direccion) {
         switch (direccion) {
             case 1: //Arriba
                 return getEntornoActual().getNorte().equals(OntologiaLaberinto.LIBRE);
@@ -506,7 +515,7 @@ public class ContenedorRaton {
         return false;
     }
 
-    public void aplicar(int m) {
+    private void aplicar(int m) {
         int x = getPosicion().getCoorX();
         int y = getPosicion().getCoorY();
         switch (m) {

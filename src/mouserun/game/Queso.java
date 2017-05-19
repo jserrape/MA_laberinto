@@ -8,20 +8,6 @@ import java.io.IOException;
  */
 public class Queso {
 
-    /**
-     * @return the x
-     */
-    public int getX() {
-        return x;
-    }
-
-    /**
-     * @return the y
-     */
-    public int getY() {
-        return y;
-    }
-
     private int x;
     private int y;
     private ImagedPanel panel;
@@ -38,13 +24,13 @@ public class Queso {
     public Queso(int _x, int _y) throws IOException {
         this.x = _x;
         this.y = _y;
-        panel = new ImagedPanel("assets/cheese.png", GRID_LENGTH-10, GRID_LENGTH-10);
+        panel = new ImagedPanel("assets/cheese.png", GRID_LENGTH - 10, GRID_LENGTH - 10);
         panel.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
         panel.setOpaque(false);
     }
 
     /**
-     * @return panel
+     * @return panel Imagen del queso
      */
     public ImagedPanel getPanel() {
         return panel;
@@ -60,6 +46,20 @@ public class Queso {
         this.x = _x;
         this.y = _y;
         panel.setBounds(getX() * GRID_LENGTH, getY() * GRID_LENGTH, GRID_LENGTH * 2, 20);
+    }
+
+    /**
+     * @return the x
+     */
+    public int getX() {
+        return x;
+    }
+
+    /**
+     * @return the y
+     */
+    public int getY() {
+        return y;
     }
 
 }
