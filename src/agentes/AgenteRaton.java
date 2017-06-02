@@ -31,6 +31,7 @@ import jade.proto.ProposeResponder;
 import jade.proto.SubscriptionInitiator;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,14 +68,20 @@ public class AgenteRaton extends Agent {
     private ArrayList<String> mensajesPendientes;
 
     //Elementos para la ontologia
-    private Codec codec = new SLCodec();
+    private final Codec codec = new SLCodec();
     private Ontology ontologia;
-    private ContentManager manager = (ContentManager) getContentManager();
+    private final ContentManager manager = (ContentManager) getContentManager();
 
+    private Map<String, InformarPartidaSubscribe> subscribes;
+
+    /**
+     * Inicializacion de las variables e inicio de las tareas basicas
+     */
     @Override
     protected void setup() {
         mensajesPendientes = new ArrayList();
         partidasIniciadas = new HashMap<>();
+        subscribes = new HashMap<>();
 
         DFAgentDescription dfd = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
@@ -113,23 +120,46 @@ public class AgenteRaton extends Agent {
         addBehaviour(new TareaJugarPartida(this, template));
     }
 
+    /**
+     * Finalizacion el agente
+     */
     @Override
     protected void takeDown() {
         //Desregristo del agente de las Páginas Amarillas
         try {
             DFService.deregister(this);
         } catch (FIPAException fe) {
-            fe.printStackTrace();
         }
+
+        Iterator<Map.Entry<String, InformarPartidaSubscribe>> entries = subscribes.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry<String, InformarPartidaSubscribe> entry = entries.next();
+            entry.getValue().desRegistrarse();
+        }
+
         System.out.println("Finaliza la ejecución del agente: " + this.getName());
     }
 
+    /**
+     * Clase para responder proposiciones de partidas
+     */
     private class ResponderProposicionPartida extends ProposeResponder {
 
+        /**
+         * Constructor parametrizado
+         * @param agente Agente padre
+         * @param plantilla Mensaje plantilla
+         */
         public ResponderProposicionPartida(Agent agente, MessageTemplate plantilla) {
             super(agente, plantilla);
         }
 
+        /**
+         * Metodo para recibir una proposicion de partida y contestar a esta
+         * @param propuesta Propuesta de partida
+         * @return Mensaje de aceptacion de la partdia
+         * @throws NotUnderstoodException 
+         */
         @Override
         protected ACLMessage prepareResponse(ACLMessage propuesta) throws NotUnderstoodException {
             ProponerPartida proposicionPartida = null;
@@ -166,56 +196,78 @@ public class AgenteRaton extends Agent {
                 Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida()+"\n"
+            mensajesPendientes.add("ACEPTO una proposicion de partida con id " + partida.getIdPartida() + "\n"
                     + "El entorno inicial es:\n    N:" + entornoActual.getNorte() + " S:" + entornoActual.getSur()
                     + " O:" + entornoActual.getOeste() + " E:" + entornoActual.getEste());
 
-            ///////////////////////////////////////////////////
-            InformarPartida inf = new InformarPartida(jugador);
-            ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
-            mensaje.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
-            mensaje.setSender(this.myAgent.getAID());
-            mensaje.setLanguage(codec.getName());
-            mensaje.setOntology(ontologia.getName());
 
-            Action action = new Action(getAID(), inf);
-            try {
-                manager.fillContent(mensaje, action);
-            } catch (Codec.CodecException | OntologyException ex) {
-                Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+            if (!subscribes.containsKey(propuesta.getSender().getName())) {
+                InformarPartida inf = new InformarPartida(jugador);
+                ACLMessage mensaje = new ACLMessage(ACLMessage.SUBSCRIBE);
+                mensaje.setProtocol(FIPANames.InteractionProtocol.FIPA_SUBSCRIBE);
+                mensaje.setSender(this.myAgent.getAID());
+                mensaje.setLanguage(codec.getName());
+                mensaje.setOntology(ontologia.getName());
+                mensaje.addReceiver(propuesta.getSender());
+
+                try {
+                    Action action = new Action(getAID(), inf);
+                    manager.fillContent(mensaje, action);
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteRaton.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                InformarPartidaSubscribe tarea = new InformarPartidaSubscribe(this.myAgent, mensaje);
+                subscribes.put(propuesta.getSender().getName(), tarea);
+
+                addBehaviour(tarea);
             }
-
-            //Se añade el destinatario del mensaje
-            AID id = new AID();
-            id.setLocalName(OntologiaLaberinto.REGISTRO_LABERINTO);
-            mensaje.addReceiver(id);
-
-            //ME REGISTRO AL SUBSCRIBE
-            addBehaviour(new InformarPartidaSubscribe(this.myAgent, mensaje));
 
             return agree;
         }
     }
 
+    /**
+     * Tarea de gestion de suscripciones
+     */
     private class InformarPartidaSubscribe extends SubscriptionInitiator {
 
+        private AID sender;
+
+        /**
+         * Constructoir parametrizado
+         * @param agente Agente padre
+         * @param mensaje  Mensaje plantilla
+         */
         public InformarPartidaSubscribe(Agent agente, ACLMessage mensaje) {
             super(agente, mensaje);
         }
 
-        //Maneja la respuesta en caso que acepte: AGREE
+        /**
+         * Maneja la respuesta en caso que acepte: AGREE
+         * @param inform Mensaje INFORM
+         */
         @Override
         protected void handleAgree(ACLMessage inform) {
             mensajesPendientes.add("Mi subscripcion a la plataforma ha sido aceptada");
+            this.sender = inform.getSender();
         }
 
-        // Maneja la respuesta en caso que rechace: REFUSE
+
+        /**
+         * Maneja la respuesta en caso que rechace: REFUSE
+         * @param inform Mensaje REFUSE
+         */
         @Override
         protected void handleRefuse(ACLMessage inform) {
             mensajesPendientes.add("Mi subscripcion a la plataforma ha sido rechazada");
         }
 
-        //Maneja la informacion enviada: INFORM
+        
+        /**
+         * Se ha recibido un DetalleInforme
+         * @param inform Mensaje INFORM
+         */
         @Override
         protected void handleInform(ACLMessage inform) {
             try {
@@ -242,7 +294,22 @@ public class AgenteRaton extends Agent {
             }
         }
 
-        //Maneja la respuesta en caso de fallo: FAILURE
+        /**
+         * Funcion para el desRegistro de la suscripcion del laberinto
+         */
+        public void desRegistrarse() {
+            //Enviamos la cancelación de la suscripcion
+            this.cancel(sender, false);
+
+            //Comprobamos que se ha cancelado correctamente
+            this.cancellationCompleted(sender);
+        }
+
+        
+        /**
+         * Maneja la respuesta en caso de fallo: FAILURE
+         * @param failure 
+         */
         @Override
         protected void handleFailure(ACLMessage failure) {
 
@@ -253,14 +320,29 @@ public class AgenteRaton extends Agent {
         }
     }
 
+    /**
+     * Tarea de negociacion de la partida
+     */
     private class TareaJugarPartida extends ContractNetResponder {
 
         private ContenedorRaton contenedor;
 
+        /**
+         * Constructor parametrizado
+         * @param agente Agente padre
+         * @param plantilla Mensaje plantilla
+         */
         public TareaJugarPartida(Agent agente, MessageTemplate plantilla) {
             super(agente, plantilla);
         }
 
+        /**
+         * Llegada de un cfp para pedir una jugada 
+         * @param cfp Mensaje cfp
+         * @return Aceptacion de realizar una jugada
+         * @throws NotUnderstoodException
+         * @throws RefuseException 
+         */
         @Override
         protected ACLMessage prepareResponse(ACLMessage cfp) throws NotUnderstoodException, RefuseException {
             Action ac;
@@ -301,6 +383,14 @@ public class AgenteRaton extends Agent {
             return respuesta;
         }
 
+        /**
+         * Resultado de la jugada realizada
+         * @param cfp Mensaje cfp
+         * @param propose Propose realizado
+         * @param accept Mensaje con el contenido de mi resultado de jugada
+         * @return Mensaje INFORM
+         * @throws FailureException 
+         */
         @Override
         protected ACLMessage prepareResultNotification(ACLMessage cfp, ACLMessage propose, ACLMessage accept) throws FailureException {
             ResultadoJugada resultado = null;
@@ -328,13 +418,24 @@ public class AgenteRaton extends Agent {
         }
     }
 
+    /**
+     * Tarea que busca agentes consola por donde se mostrarán los mensajes de mensajesPendientes
+     */
     public class TareaBuscarConsolas extends TickerBehaviour {
 
-        //Se buscarán agentes consola y operación
+
+        /**
+         * Constructor parametrizado
+         * @param a Agente padre
+         * @param period Periodo de repeticion
+         */
         public TareaBuscarConsolas(Agent a, long period) {
             super(a, period);
         }
 
+        /**
+         * Busca los agente consola y los almacena
+         */
         @Override
         protected void onTick() {
             DFAgentDescription template;
@@ -364,12 +465,18 @@ public class AgenteRaton extends Agent {
         }
     }
 
+    /**
+     * Tarea que se encarga de enviar los mensajes de mensajesPendientes a las consolas encontradas
+     */
     public class TareaEnvioConsola extends TickerBehaviour {
 
         public TareaEnvioConsola(Agent a, long period) {
             super(a, period);
         }
 
+        /**
+         * Realiza un envio de mensajes a la consola
+         */
         @Override
         protected void onTick() {
             ACLMessage mensaje;
@@ -381,8 +488,6 @@ public class AgenteRaton extends Agent {
                     mensaje.addReceiver(agentesConsola[0]);
                     mensaje.setContent(mensajesPendientes.remove(0));
 
-                    //System.out.println("Enviado a: " + agentesConsola[0].getName());
-                    //System.out.println("Contenido: " + mensaje.getContent());
                     myAgent.send(mensaje);
                 } else {
                     mensaje = new ACLMessage(ACLMessage.INFORM);

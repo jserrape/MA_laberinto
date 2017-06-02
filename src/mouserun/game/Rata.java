@@ -16,37 +16,23 @@ import javax.swing.JLabel;
  */
 public class Rata {
 
-    /**
-     * @return the aid
-     */
-    public AID getAid() {
-        return aid;
-    }
-
-    /**
-     * @return the bombasColocadas
-     */
-    public int getBombasColocadas() {
-        return bombasColocadas;
-    }
-
-    private String nombre;
+    private final String nombre;
     private int x;
     private int y;
-    private ImagedPanel panel;
-    private JLabel label;
-    private int GRID_LENGTH = 30;
-    
-    private AID aid;
-    
+    private final ImagedPanel panel;
+    private final JLabel label;
+    private final int GRID_LENGTH = 30;
+
+    private final AID aid;
+
     private int bombasColocadas;
-    
+
     private int quesos;
 
-    private String izquierdaImg;
-    private String derechaImg;
-    private String abajoImg;
-    private String arribaImg;
+    private final String izquierdaImg;
+    private final String derechaImg;
+    private final String abajoImg;
+    private final String arribaImg;
 
     /**
      * Constructor parametrizado de la clase Rata
@@ -58,7 +44,7 @@ public class Rata {
      * @throws IOException An IOException can occur when the required game
      * assets are missing.
      */
-    public Rata(String _nombre, int _x, int _y,AID _aid) throws IOException {
+    public Rata(String _nombre, int _x, int _y, AID _aid) throws IOException {
         this.izquierdaImg = "assets/mouseleft.png";
         this.derechaImg = "assets/mouseright.png";
         this.abajoImg = "assets/mousedown.png";
@@ -66,33 +52,43 @@ public class Rata {
         this.nombre = _nombre;
         this.x = _x;
         this.y = _y;
-        this.bombasColocadas=0;
-        this.aid=_aid;
-        
-        panel = new ImagedPanel(derechaImg, GRID_LENGTH-5, GRID_LENGTH-5);
+        this.bombasColocadas = 0;
+        this.aid = _aid;
+
+        panel = new ImagedPanel(derechaImg, GRID_LENGTH - 5, GRID_LENGTH - 5);
         panel.setBounds(x * GRID_LENGTH, y * GRID_LENGTH, GRID_LENGTH * 2, 20);
         panel.setOpaque(false);
         label = new JLabel(nombre);
         label.setForeground(Color.RED);
         label.setBounds(x * GRID_LENGTH, y * GRID_LENGTH - 5, GRID_LENGTH * 2, 20);
-        
-        this.quesos=0;
+
+        this.quesos = 0;
     }
 
-    public void incrementaBombasColocadas(){
+    /**
+     * Aumenta las bombas colocadas
+     */
+    public void incrementaBombasColocadas() {
         ++bombasColocadas;
     }
-    
-    public int getQuesos(){
+
+    /**
+     *
+     * @return Quesos obtenidos por el raton
+     */
+    public int getQuesos() {
         return this.quesos;
     }
-    
-    public void incrementaQueso(){
+
+    /**
+     * Incrementa el numero de quesos logrados
+     */
+    public void incrementaQueso() {
         ++quesos;
     }
-    
+
     /**
-     * @return panel
+     * @return panel Imagen del raton
      */
     public ImagedPanel getPanel() {
         return panel;
@@ -131,24 +127,38 @@ public class Rata {
     }
 
     /**
-     * @return label
+     * @return label Texto del raton
      */
     public JLabel getJLabel() {
         return label;
     }
 
     /**
-     * @return the x
+     * @return x Posicion x donde esta el raton
      */
     public int getX() {
         return x;
     }
 
     /**
-     * @return the y
+     * @return y Posicion y donde esta el raton
      */
     public int getY() {
         return y;
+    }
+
+    /**
+     * @return aid AID del agente raton
+     */
+    public AID getAid() {
+        return aid;
+    }
+
+    /**
+     * @return bombasColocadas Bombas colocadas por el raton
+     */
+    public int getBombasColocadas() {
+        return bombasColocadas;
     }
 
 }

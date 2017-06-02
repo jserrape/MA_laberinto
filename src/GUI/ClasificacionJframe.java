@@ -18,7 +18,8 @@ public class ClasificacionJframe extends javax.swing.JFrame {
     /**
      * Creates new form ClasificacionJframe
      */
-    public ClasificacionJframe(int ancho, int alto, int mQuesos,int tiempo,int bombasM) {
+    public ClasificacionJframe(int ancho, int alto, int mQuesos,int tiempo,int bombasM,String nombre) {
+        super("Clasificacion: "+nombre);
         initComponents();
         jLabel10.setText(Integer.toString(tiempo));
         jLabel11.setText(Integer.toString(mQuesos));
