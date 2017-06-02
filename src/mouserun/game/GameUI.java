@@ -311,6 +311,7 @@ public class GameUI extends JFrame {
             countDownLabel.setBounds(xx, yy, (int) preferred.getWidth(), (int) preferred.getHeight());
             container.moveToFront(countDownLabel);
             anunciarGanador(partida);
+            clasificacionGUI.finPartida();
         }
     }
 

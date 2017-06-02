@@ -139,7 +139,7 @@ public class AgenteLaberinto extends Agent {
     public void empezarSistema(int t, int mq, int mt, int alt, int anc) throws IOException, InterruptedException {
         ++numPartida;
         String iid = this.getName() + numPartida;
-        ContenedorLaberinto cont = new ContenedorLaberinto(t, mq, mt, alt, anc, iid,gestor,codec,ontology,manager);
+        ContenedorLaberinto cont = new ContenedorLaberinto(t, mq, mt, alt, anc, iid, gestor, codec, ontology, manager);
         partidasIniciadas.put(iid, cont);
 
         addBehaviour(new TareaNuevaPartida(iid));
@@ -208,18 +208,18 @@ public class AgenteLaberinto extends Agent {
         @Override
         public void action() {
             ContenedorLaberinto contenedor = partidasIniciadas.get(id);
-            
+
             //GENERO EL QUESO
             try {
                 contenedor.getLaberintoGUI().nuevoQueso();
             } catch (IOException ex) {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
             Partida partida = contenedor.getPartida();
             Tablero tablero = new Tablero(contenedor.getAlto(), contenedor.getAncho());
 
-            Posicion posicionInicio = new Posicion(contenedor.getLaberintoGUI().getQuesito().getX(),contenedor.getAncho()-1-contenedor.getLaberintoGUI().getQuesito().getY());
+            Posicion posicionInicio = new Posicion(contenedor.getLaberintoGUI().getQuesito().getX(), contenedor.getAncho() - 1 - contenedor.getLaberintoGUI().getQuesito().getY());
             int numCapturasQueso = contenedor.getQuesosMax();
             int numTrampasActivas = contenedor.getMaxTrampas();
             long maximoJuegoSeg = contenedor.getTiempo();
@@ -303,7 +303,7 @@ public class AgenteLaberinto extends Agent {
             }
 
             TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 400, id);//<--------------------------------------------200
-            myAgent.addBehaviour(new acabarPartida(this.getAgent(), contenedor.getTiempo() * 1000, tarea, contenedor.getLaberintoGUI(),contenedor.getPartida()));
+            myAgent.addBehaviour(new acabarPartida(this.getAgent(), contenedor.getTiempo() * 1000, tarea, contenedor.getLaberintoGUI(), contenedor.getPartida()));
             myAgent.addBehaviour(tarea);
         }
 
@@ -343,7 +343,7 @@ public class AgenteLaberinto extends Agent {
                 }
                 msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
 
-                EntregarJugada pedirJugada = new EntregarJugada ( contenedor.getPartida());
+                EntregarJugada pedirJugada = new EntregarJugada(contenedor.getPartida());
                 Action ac = new Action(this.myAgent.getAID(), pedirJugada);
 
                 try {
@@ -357,7 +357,9 @@ public class AgenteLaberinto extends Agent {
                     mensaj += "   " + contenedor.getRatonesPartida().get(i).getNombre() + "\n";
                 }
                 mensajesPendientes.add(mensaj);
-                addBehaviour(new TareaJugarPartida(this.myAgent, msg, contenedor.getIdPartida()));
+                if (msg.getSender() != null) {
+                    addBehaviour(new TareaJugarPartida(this.myAgent, msg, contenedor.getIdPartida()));
+                }
             } else {
                 System.out.println("Final");
                 try {
@@ -386,39 +388,46 @@ public class AgenteLaberinto extends Agent {
             List<JugadaEntregada> jugadas = new ArrayList();
             ACLMessage respuesta;
             Iterator it = responses.iterator();
+
             while (it.hasNext()) {
                 ACLMessage msg = (ACLMessage) it.next();
+                if (msg.getContent().contains("JugadaEntregada")) {
+                    try {
+                        jugada = (JugadaEntregada) manager.extractContent(msg);
+                        if (jugada.getJugador().getNombre() != null && jugada.getPartida() != null) {
+                            respuesta = msg.createReply();
+                            respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+                            acceptances.add(respuesta);
+                            jugadas.add(jugada);
+                            resultado += "\n    Jugador: " + jugada.getJugador().getNombre() + " Accion: " + jugada.getAccion().getJugada();
+
+                        }
+                    } catch (Exception ex) {
+                        Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                }
+                mensajesPendientes.add(resultado);
+
+                List<ResultadoJugada> resultados = null;
                 try {
-                    jugada = (JugadaEntregada) manager.extractContent(msg);
-                } catch (Codec.CodecException | OntologyException ex) {
+                    resultados = contenedor.getLaberintoGUI().hacerJugadas(jugadas, new Partida(contenedor.getIdPartida(), OntologiaLaberinto.TIPO_JUEGO));
+                } catch (Exception ex) {
                     Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                respuesta = msg.createReply();
-                respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                acceptances.add(respuesta);
-                jugadas.add(jugada);
-                resultado += "\n    Jugador: " + jugada.getJugador().getNombre() + " Accion: " + jugada.getAccion().getJugada();
-            }
-            mensajesPendientes.add(resultado);
+                mensajesPendientes.add("Se han generado " + resultados.size() + " resultados de las " + jugadas.size() + " jugadas.");
+                ACLMessage msgg;
+                for (int i = 0; i < jugadas.size(); i++) {
+                    msgg = (ACLMessage) acceptances.get(i);
 
-            List<ResultadoJugada> resultados = null;
-            try {
-                resultados = contenedor.getLaberintoGUI().hacerJugadas(jugadas, new Partida(contenedor.getIdPartida(), OntologiaLaberinto.TIPO_JUEGO));
-            } catch (IOException | Codec.CodecException | OntologyException ex) {
-                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            mensajesPendientes.add("Se han generado " + resultados.size() + " resultados de las " + jugadas.size() + " jugadas.");
-            ACLMessage msgg;
-            for (int i = 0; i < jugadas.size(); i++) {
-                msgg = (ACLMessage) acceptances.get(i);
+                    try {
+                        manager.fillContent(msgg, resultados.get(i));
+                    } catch (Exception ex) {
+                        Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 
-                try {
-                    manager.fillContent(msgg, resultados.get(i));
-                } catch (Codec.CodecException | OntologyException ex) {
-                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+                    acceptances.set(i, msgg);
                 }
-
-                acceptances.set(i, msgg);
             }
         }
 
@@ -522,11 +531,11 @@ public class AgenteLaberinto extends Agent {
         private GameUI labe;
         private Partida partida;
 
-        public acabarPartida(Agent a, long period, TareaInicioRonda t, GameUI laberinto,Partida part) {
+        public acabarPartida(Agent a, long period, TareaInicioRonda t, GameUI laberinto, Partida part) {
             super(a, period);
             this.tarea = t;
             this.labe = laberinto;
-            this.partida=part;
+            this.partida = part;
         }
 
         @Override

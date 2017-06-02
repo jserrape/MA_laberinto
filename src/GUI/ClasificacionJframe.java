@@ -42,6 +42,9 @@ public class ClasificacionJframe extends javax.swing.JFrame {
         }
     }
     
+    public void finPartida(){
+        jLabel15.setText("Finalizado");
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -82,7 +85,7 @@ public class ClasificacionJframe extends javax.swing.JFrame {
         jLabel2.setText("Nombre agente");
 
         jLabel3.setFont(new java.awt.Font("Arial", 1, 14)); // NOI18N
-        jLabel3.setText("Bombas cagadas");
+        jLabel3.setText("Bombas soltadas");
 
         nombreJArea.setColumns(20);
         nombreJArea.setRows(5);
