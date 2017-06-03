@@ -143,7 +143,6 @@ public class AgenteLaberinto extends Agent {
 
     /**
      * Inicializa un juego con ratones y un laberinto
-     *
      * @param t tiempo de juego
      * @param mq máximo de quesos a capturar
      * @param mt máximo de trampas a usar por cada ratón
@@ -155,7 +154,7 @@ public class AgenteLaberinto extends Agent {
     public void empezarSistema(int t, int mq, int mt, int alt, int anc) throws IOException, InterruptedException {
         ++numPartida;
         String iid = this.getName() + numPartida;
-        ContenedorLaberinto cont = new ContenedorLaberinto(t, mq, mt, alt, anc, iid, gestor, codec, ontology, manager);
+        ContenedorLaberinto cont = new ContenedorLaberinto(t, mq, mt, alt, anc, iid,gestor,codec,ontology,manager);
         partidasIniciadas.put(iid, cont);
 
         addBehaviour(new TareaNuevaPartida(iid));
@@ -170,7 +169,6 @@ public class AgenteLaberinto extends Agent {
 
         /**
          * Constructor parametrizado
-         *
          * @param a Agente padre
          * @param mt Plantilla mensaje
          */
@@ -180,7 +178,6 @@ public class AgenteLaberinto extends Agent {
 
         /**
          * Constructor parametrizado
-         *
          * @param a Agente padre
          * @param mt Plantilla mensaje
          */
@@ -190,11 +187,10 @@ public class AgenteLaberinto extends Agent {
 
         /**
          * Llegada de una peticion de nueva suscripcion
-         *
          * @param subscription Peticion de suscripcion
          * @return Mensaje AGREE
          * @throws NotUnderstoodException
-         * @throws RefuseException
+         * @throws RefuseException 
          */
         @Override
         protected ACLMessage handleSubscription(ACLMessage subscription) throws NotUnderstoodException, RefuseException {
@@ -223,10 +219,9 @@ public class AgenteLaberinto extends Agent {
 
         /**
          * Peticion para eliminar suscripcion
-         *
          * @param cancel Mensaje de cancelacion
          * @return null
-         * @throws FailureException
+         * @throws FailureException 
          */
         @Override
         protected ACLMessage handleCancel(ACLMessage cancel) throws FailureException {
@@ -244,15 +239,14 @@ public class AgenteLaberinto extends Agent {
     }
 
     /**
-     * Tarea encargada de lanzar una nueva partida
-     */
+     * Tarea encargada de lanzar una nueva partida 
+    */
     public class TareaNuevaPartida extends OneShotBehaviour {
 
         private final String id;
 
         /**
          * Constructor parametrizado
-         *
          * @param _id Id de la nueva partida
          */
         public TareaNuevaPartida(String _id) {
@@ -265,18 +259,18 @@ public class AgenteLaberinto extends Agent {
         @Override
         public void action() {
             ContenedorLaberinto contenedor = partidasIniciadas.get(id);
-
+            
             //GENERO EL QUESO
             try {
                 contenedor.getLaberintoGUI().nuevoQueso();
             } catch (IOException ex) {
                 Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
             }
-
+            
             Partida partida = contenedor.getPartida();
             Tablero tablero = new Tablero(contenedor.getAlto(), contenedor.getAncho());
 
-            Posicion posicionInicio = new Posicion(contenedor.getLaberintoGUI().getQuesito().getX(), contenedor.getAncho() - 1 - contenedor.getLaberintoGUI().getQuesito().getY());
+            Posicion posicionInicio = new Posicion(contenedor.getLaberintoGUI().getQuesito().getX(),contenedor.getAncho()-1-contenedor.getLaberintoGUI().getQuesito().getY());
             int numCapturasQueso = contenedor.getQuesosMax();
             int numTrampasActivas = contenedor.getMaxTrampas();
             long maximoJuegoSeg = contenedor.getTiempo();
@@ -313,8 +307,7 @@ public class AgenteLaberinto extends Agent {
     }
 
     /**
-     * Tarea encargada de enviar una proposición de juego a los ratones
-     * encontrados
+     * Tarea encargada de enviar una proposición de juego a los ratones encontrados
      */
     public class TareaProponerPartida extends ProposeInitiator {
 
@@ -322,7 +315,6 @@ public class AgenteLaberinto extends Agent {
 
         /**
          * Tarea de proposicion de partida
-         *
          * @param agente Agente padre
          * @param msg Plantilla
          * @param _id Id de la partida
@@ -333,9 +325,7 @@ public class AgenteLaberinto extends Agent {
         }
 
         /**
-         * Lectura de los agentes que han aceptado la proposicionde jugar
-         * partida
-         *
+         * Lectura de los agentes que han aceptado la proposicionde jugar partida
          * @param responses Respuestas de los agentes
          */
         @Override
@@ -377,7 +367,7 @@ public class AgenteLaberinto extends Agent {
             }
 
             TareaInicioRonda tarea = new TareaInicioRonda(this.getAgent(), 400, id);//<--------------------------------------------200
-            myAgent.addBehaviour(new acabarPartida(this.getAgent(), contenedor.getTiempo() * 1000, tarea, contenedor.getLaberintoGUI(), contenedor.getPartida()));
+            myAgent.addBehaviour(new acabarPartida(this.getAgent(), contenedor.getTiempo() * 1000, tarea, contenedor.getLaberintoGUI(),contenedor.getPartida()));
             myAgent.addBehaviour(tarea);
         }
 
@@ -402,7 +392,6 @@ public class AgenteLaberinto extends Agent {
 
         /**
          * Constructor parametrizado
-         *
          * @param a Agente padre
          * @param period Periodo de repeticion
          * @param id Id de la partida
@@ -429,7 +418,7 @@ public class AgenteLaberinto extends Agent {
                 }
                 msg.setReplyByDate(new Date(System.currentTimeMillis() + TIME_OUT));
 
-                EntregarJugada pedirJugada = new EntregarJugada(contenedor.getPartida());
+                EntregarJugada pedirJugada = new EntregarJugada ( contenedor.getPartida());
                 Action ac = new Action(this.myAgent.getAID(), pedirJugada);
 
                 try {
@@ -469,45 +458,36 @@ public class AgenteLaberinto extends Agent {
             List<JugadaEntregada> jugadas = new ArrayList();
             ACLMessage respuesta;
             Iterator it = responses.iterator();
-
             while (it.hasNext()) {
                 ACLMessage msg = (ACLMessage) it.next();
-                if (msg.getContent().contains("JugadaEntregada")) {
-                    try {
-                        jugada = (JugadaEntregada) manager.extractContent(msg);
-                        if (jugada.getJugador().getNombre() != null && jugada.getPartida() != null) {
-                            respuesta = msg.createReply();
-                            respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                            acceptances.add(respuesta);
-                            jugadas.add(jugada);
-                        }
-                    } catch (Codec.CodecException | OntologyException ex) {
-                        Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    respuesta = msg.createReply();
-                    respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                    acceptances.add(respuesta);
-                    jugadas.add(jugada);
-                }
-
-                List<ResultadoJugada> resultados = null;
                 try {
-                    resultados = contenedor.getLaberintoGUI().hacerJugadas(jugadas, new Partida(contenedor.getIdPartida(), OntologiaLaberinto.TIPO_JUEGO));
-                } catch (IOException | Codec.CodecException | OntologyException ex) {
+                    jugada = (JugadaEntregada) manager.extractContent(msg);
+                } catch (Codec.CodecException | OntologyException ex) {
                     Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                ACLMessage msgg;
-                for (int i = 0; i < jugadas.size(); i++) {
-                    msgg = (ACLMessage) acceptances.get(i);
-                    try {
-                        manager.fillContent(msgg, resultados.get(i));
-                    } catch (Codec.CodecException | OntologyException ex) {
-                        Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    acceptances.set(i, msgg);
+                respuesta = msg.createReply();
+                respuesta.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+                acceptances.add(respuesta);
+                jugadas.add(jugada);
+            }
 
+            List<ResultadoJugada> resultados = null;
+            try {
+                resultados = contenedor.getLaberintoGUI().hacerJugadas(jugadas, new Partida(contenedor.getIdPartida(), OntologiaLaberinto.TIPO_JUEGO));
+            } catch (IOException | Codec.CodecException | OntologyException ex) {
+                Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            ACLMessage msgg;
+            for (int i = 0; i < jugadas.size(); i++) {
+                msgg = (ACLMessage) acceptances.get(i);
+
+                try {
+                    manager.fillContent(msgg, resultados.get(i));
+                } catch (Codec.CodecException | OntologyException ex) {
+                    Logger.getLogger(AgenteLaberinto.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
+                acceptances.set(i, msgg);
             }
         }
 
@@ -578,8 +558,7 @@ public class AgenteLaberinto extends Agent {
     }
 
     /**
-     * Tarea que se encarga de enviar los mensajes de mensajesPendientes a las
-     * consolas encontradas
+     * Tarea que se encarga de enviar los mensajes de mensajesPendientes a las consolas encontradas
      */
     public class TareaEnvioConsola extends TickerBehaviour {
 
@@ -623,18 +602,17 @@ public class AgenteLaberinto extends Agent {
 
         /**
          * Constructor parametrizado
-         *
          * @param a Agente padre
          * @param period Periodo tras el que se lanza
          * @param t Tarea encargada de iniciar las rondas
          * @param laberinto Interfaz del laberinto
          * @param part Partida
          */
-        public acabarPartida(Agent a, long period, TareaInicioRonda t, GameUI laberinto, Partida part) {
+        public acabarPartida(Agent a, long period, TareaInicioRonda t, GameUI laberinto,Partida part) {
             super(a, period);
             this.tarea = t;
             this.labe = laberinto;
-            this.partida = part;
+            this.partida=part;
         }
 
         /**
