@@ -61,6 +61,8 @@ public class GameUI extends JFrame {
     private final Ontology ontology;
     private final ContentManager manager;
 
+    private final ArrayList<String> jugadasFichero;
+
     private boolean yaAcabado;
 
     /**
@@ -82,10 +84,11 @@ public class GameUI extends JFrame {
      * @throws java.lang.InterruptedException
      */
     public GameUI(String id, int ancho, int alto, int mQuesos, int tiempo, int bombasM, ContenedorLaberinto cont, GestorSuscripciones ge, Codec co, Ontology ont, ContentManager ma) throws IOException, InterruptedException {
-        super("Interfaz: "+id);
-        GRID_LENGTH = 30;
-
-        arrayBombas = new ArrayList();
+        super("Interfaz: " + id);
+        this.GRID_LENGTH = 30;
+        
+        this.arrayBombas = new ArrayList();
+        this.jugadasFichero = new ArrayList();
 
         this.codec = co;
         this.ontology = ont;
@@ -104,7 +107,7 @@ public class GameUI extends JFrame {
 
         this.yaAcabado = false;
 
-        clasificacionGUI = new ClasificacionJframe(ancho, alto, mQuesos, tiempo, bombasM,id);
+        clasificacionGUI = new ClasificacionJframe(ancho, alto, mQuesos, tiempo, bombasM, id);
 
         initialiseUI();
     }
@@ -150,7 +153,7 @@ public class GameUI extends JFrame {
     }
 
     /**
-     * 
+     *
      * @param x Posicion x
      * @param y Posicion y
      * @return Entorno de una posicion del laberinto
@@ -161,21 +164,21 @@ public class GameUI extends JFrame {
 
     /**
      * Gestion del los turnos
+     *
      * @param jugadas Lista con las jugadas de los ratones en este turno
      * @param part Partida a la que le corresponde
      * @return Resultado de las jugadas
      * @throws IOException
      * @throws jade.content.lang.Codec.CodecException
-     * @throws OntologyException 
+     * @throws OntologyException
      */
     public java.util.List<ResultadoJugada> hacerJugadas(java.util.List<JugadaEntregada> jugadas, Partida part) throws IOException, Codec.CodecException, OntologyException {
         java.util.List<ResultadoJugada> nuevosEntornos;
         nuevosEntornos = new ArrayList();
-        boolean muerto;
         for (int i = 0; i < jugadas.size(); i++) {
             for (int j = 0; j < arrayRatas.size(); j++) {
                 if (jugadas.get(i).getJugador().getNombre().equals(arrayRatas.get(j).getJLabel().getText())) {
-                    muerto = false;
+                    jugadasFichero.add(jugadas.get(i).toString());
                     int x = arrayRatas.get(j).getX();
                     int y = arrayRatas.get(j).getY();
                     if (jugadas.get(i).getAccion().getJugada().equals(OntologiaLaberinto.MOVIMIENTO)) {
@@ -184,6 +187,7 @@ public class GameUI extends JFrame {
                         nuevaTrampa(x, y, jugadas.get(i).getJugador().getNombre());
                         arrayRatas.get(j).incrementaBombasColocadas();
                         clasificacionGUI.crearClarificacion(arrayRatas);
+                        jugadasFichero.add("BOMBA");
                     }
                     for (int z = 0; z < arrayBombas.size(); z++) {
                         if (!arrayBombas.get(z).getLabel().getText().equals(arrayRatas.get(j).getJLabel().getText())) {
@@ -195,25 +199,26 @@ public class GameUI extends JFrame {
                                 arrayBombas.remove(z);
                                 --z;
                                 clasificacionGUI.crearClarificacion(arrayRatas);
+                                jugadasFichero.add("MUERTE");
                             }
                         }
                     }
 
                     if (arrayRatas.get(j).getX() < 0) {
                         arrayRatas.get(j).setPosicion(0, arrayRatas.get(j).getY());
-                        System.out.println(1);
+                        jugadasFichero.add("TRAMPOSO");
                     }
                     if (alto - 1 - arrayRatas.get(j).getY() < 0) {
                         arrayRatas.get(j).setPosicion(arrayRatas.get(j).getX(), 0);
-                        System.out.println(2);
+                        jugadasFichero.add("TRAMPOSO");
                     }
                     if (arrayRatas.get(j).getX() >= ancho) {
                         arrayRatas.get(j).setPosicion(ancho - 1, arrayRatas.get(j).getY());
-                        System.out.println(3);
+                        jugadasFichero.add("TRAMPOSO");
                     }
                     if (alto - 1 - arrayRatas.get(j).getY() >= alto) {
                         arrayRatas.get(j).setPosicion(arrayRatas.get(j).getX(), alto - 1);
-                        System.out.println(4);
+                        jugadasFichero.add("TRAMPOSO");
                     }
                     EntornoLaberinto ent = getEntorno(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
                     Posicion pos = new Posicion(arrayRatas.get(j).getX(), alto - 1 - arrayRatas.get(j).getY());
@@ -228,9 +233,11 @@ public class GameUI extends JFrame {
 
     /**
      * Creacion de un nuevo queso
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public void nuevoQueso() throws IOException {
+        jugadasFichero.add("NUEVO QUESO");
         int x = (int) (Math.random() * alto);
         int y = (int) (Math.random() * ancho);
         quesito = new Queso(x, alto - 1 - y);
@@ -240,10 +247,11 @@ public class GameUI extends JFrame {
 
     /**
      * Creacion de una nueva trampa
+     *
      * @param x Posicion x
      * @param y Posicion y
      * @param creador Identificador del creador de la trampa
-     * @throws IOException 
+     * @throws IOException
      */
     public void nuevaTrampa(int x, int y, String creador) throws IOException {
         Bomba bomb = new Bomba(x, y, creador);
@@ -252,16 +260,19 @@ public class GameUI extends JFrame {
         container.add(bomb.getLabel());
         container.moveToFront(bomb.getLabel());
         arrayBombas.add(bomb);
+        jugadasFichero.add("NUEVA TRAMPA");
     }
 
     /**
      * Funcion para crear los ratrones que participan en la partida
+     *
      * @param ratonesPartida Lista con todos los ratones
-     * @throws IOException 
+     * @throws IOException
      */
     public void generarRatones(ArrayList<ResultadoRaton> ratonesPartida) throws IOException {
         Rata rata;
         for (int i = 0; i < ratonesPartida.size(); i++) {
+            jugadasFichero.add("Nueva rata: " + ratonesPartida.get(i).toString());
             rata = new Rata(ratonesPartida.get(i).getNombre(), 0, alto - 1 - 0, ratonesPartida.get(i).getAidRaton());
             arrayRatas.add(rata);
             container.add(rata.getPanel());
@@ -272,18 +283,19 @@ public class GameUI extends JFrame {
         clasificacionGUI.crearClarificacion(arrayRatas);
     }
 
-    
     /**
-     * Comprueba si algun raton ha logrado un queso, e informa a los demas de ello
+     * Comprueba si algun raton ha logrado un queso, e informa a los demas de
+     * ello
+     *
      * @param jugadas Jugadas de los ratones
      * @param part Identificador de la partida
      * @throws jade.content.lang.Codec.CodecException
-     * @throws OntologyException 
+     * @throws OntologyException
      */
     public void comprobarQueso(java.util.List<JugadaEntregada> jugadas, Partida part) throws Codec.CodecException, OntologyException {
         for (int j = 0; j < arrayRatas.size(); j++) {
             if (arrayRatas.get(j).getX() == getQuesito().getX() && arrayRatas.get(j).getY() == getQuesito().getY()) {
-
+                jugadasFichero.add("QUESO COGIDO");
                 arrayRatas.get(j).incrementaQueso();
                 int x = (int) (Math.random() * alto);
                 int y = (int) (Math.random() * ancho);
@@ -325,9 +337,10 @@ public class GameUI extends JFrame {
 
     /**
      * Funcion pàra informar a los ratones de que alguien ha logrado un queso
+     *
      * @param partida Partida en la que se juega
      * @throws jade.content.lang.Codec.CodecException
-     * @throws OntologyException 
+     * @throws OntologyException
      */
     public void anunciarGanador(Partida partida) throws Codec.CodecException, OntologyException {
         GanadorPartida ganador = new GanadorPartida(new Jugador(arrayRatas.get(0).getAid().getName(), arrayRatas.get(0).getAid()));
@@ -357,15 +370,16 @@ public class GameUI extends JFrame {
 
     }
 
-    
     /**
      * Finaliza la partida
+     *
      * @param partida Elemento partida
      * @throws jade.content.lang.Codec.CodecException
-     * @throws OntologyException 
+     * @throws OntologyException
      */
     public void mostrarFIN(Partida partida) throws Codec.CodecException, OntologyException {
         if (!yaAcabado) {
+            jugadasFichero.add("FIN DE PARTIDA");
             yaAcabado = true;
             this.contenedor.completarObjetivoQuesos();
             JLabel countDownLabel = new JLabel("");
@@ -380,6 +394,26 @@ public class GameUI extends JFrame {
             countDownLabel.setBounds(xx, yy, (int) preferred.getWidth(), (int) preferred.getHeight());
             container.moveToFront(countDownLabel);
             anunciarGanador(partida);
+            crearFichero();
+        }
+    }
+
+    private void crearFichero() {
+        java.util.Date utilDate = new java.util.Date();
+        long lnMilisegundos = utilDate.getTime();
+        java.sql.Date sqlDate = new java.sql.Date(lnMilisegundos);
+        java.sql.Time sqlTime = new java.sql.Time(lnMilisegundos);
+        String nombreFichero = sqlDate + "--" + sqlTime;
+        nombreFichero = nombreFichero.replace(":", "-");
+        try {
+            try (BufferedWriter ficheroSalida = new BufferedWriter(new FileWriter(new File("partidasAnteriores/" + nombreFichero + ".txt")))) {
+                for (int i = 0; i < jugadasFichero.size(); i++) {
+                    ficheroSalida.write(jugadasFichero.get(i));
+                    ficheroSalida.newLine();
+                }
+            }
+        } catch (IOException errorDeFichero) {
+            System.out.println("Ha habido problemas: " + errorDeFichero.getMessage());
         }
     }
 
