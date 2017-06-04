@@ -1,0 +1,1 @@
+java -cp ..\lib\jade.jar;..\lib\Ontologias.jar;..\build\classes jade.Boot -gui -agents rata1:agentes.AgenteRaton;rata2:agentes.AgenteRaton;rata3:agentes.AgenteRaton;laberinto:agentes.AgenteLaberinto;consola:agentes.AgenteConsola;
