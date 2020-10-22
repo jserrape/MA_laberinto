@@ -56,14 +56,18 @@ import util.ContenedorPartida;
  */
 public class AgenteLadron extends Agent {
 
-    private Map<String, ContenedorPartida> mapaPartidas;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private Map<String, ContenedorPartida> mapaPartidas;
 
     private Codec codec = new SLCodec();
 
     // La ontología que utilizará el agente
     private Ontology ontologia;
 
-    private Partida partida;
     private Jugador jugador;
 
     private AID[] agentesConsola;
@@ -140,7 +144,12 @@ public class AgenteLadron extends Agent {
 
     public class TareaBuscarConsola extends TickerBehaviour {
 
-        //Se buscarán consolas 
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		//Se buscarán consolas 
         public TareaBuscarConsola(Agent a, long period) {
             super(a, period);
         }
@@ -170,7 +179,12 @@ public class AgenteLadron extends Agent {
 
     public class TareaEnvioConsola extends TickerBehaviour {
 
-        //Tarea de ejemplo que se repite cada 10 segundos
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		//Tarea de ejemplo que se repite cada 10 segundos
         public TareaEnvioConsola(Agent a, long period) {
             super(a, period);
         }
@@ -196,7 +210,12 @@ public class AgenteLadron extends Agent {
 
     private class InformarPartidaSubscribe extends SubscriptionInitiator {
 
-        public InformarPartidaSubscribe(Agent agente, ACLMessage mensaje) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public InformarPartidaSubscribe(Agent agente, ACLMessage mensaje) {
             super(agente, mensaje);
         }
 
@@ -255,7 +274,12 @@ public class AgenteLadron extends Agent {
 
     private class ResponderProposicionPartida extends ProposeResponder {
 
-        public ResponderProposicionPartida(Agent agente, MessageTemplate plantilla) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public ResponderProposicionPartida(Agent agente, MessageTemplate plantilla) {
             super(agente, plantilla);
         }
 
@@ -316,7 +340,12 @@ public class AgenteLadron extends Agent {
 
     private class TareaJugarPartida extends ContractNetResponder {
 
-        public TareaJugarPartida(Agent agente, MessageTemplate plantilla) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public TareaJugarPartida(Agent agente, MessageTemplate plantilla) {
             super(agente, plantilla);
         }
 

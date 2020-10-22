@@ -26,7 +26,11 @@ import util.MensajeConsola;
  */
 public class AgenteConsola extends Agent {
 
-    private ArrayList<ConsolaJFrame> myGui;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private ArrayList<ConsolaJFrame> myGui;
     private ArrayList<MensajeConsola> mensajesPendientes;
 
     /**
@@ -35,8 +39,8 @@ public class AgenteConsola extends Agent {
     @Override
     protected void setup() {
         //Incialización de variables
-        myGui = new ArrayList();
-        mensajesPendientes = new ArrayList();
+        myGui = new ArrayList<ConsolaJFrame>();
+        mensajesPendientes = new ArrayList<MensajeConsola>();
 
         //Regisro de la Ontología
         //Registro en Página Amarillas
@@ -98,7 +102,12 @@ public class AgenteConsola extends Agent {
     //Tareas del agente consola
     public class TareaRecepcionMensajes extends CyclicBehaviour {
 
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
         public void action() {
             //Solo se atenderán mensajes INFORM
             MessageTemplate plantilla = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
@@ -119,7 +128,12 @@ public class AgenteConsola extends Agent {
 
     public class TareaPresentarMensaje extends OneShotBehaviour {
 
-        @Override
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
         public void action() {
             //Se coge el primer mensaje
             MensajeConsola mensajeConsola = mensajesPendientes.remove(0);
