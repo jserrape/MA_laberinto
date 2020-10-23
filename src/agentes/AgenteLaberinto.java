@@ -80,7 +80,7 @@ public class AgenteLaberinto extends Agent {
     private Map<String, ContenedorLaberinto> partidasIniciadas;
 
     //Variables para la ontologia
-    private ContentManager manager = (ContentManager) getContentManager();
+    private ContentManager manager = getContentManager();
     private Codec codec = new SLCodec();
     private Ontology ontology;
 

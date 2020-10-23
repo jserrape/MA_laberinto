@@ -60,7 +60,12 @@ import util.ContenedorRaton;
  */
 public class AgenteRaton extends Agent {
 
-    private Map<String, ContenedorRaton> partidasIniciadas;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private Map<String, ContenedorRaton> partidasIniciadas;
 
     private Jugador jugador;
 
@@ -146,6 +151,11 @@ public class AgenteRaton extends Agent {
     private class ResponderProposicionPartida extends ProposeResponder {
 
         /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		/**
          * Constructor parametrizado
          * @param agente Agente padre
          * @param plantilla Mensaje plantilla
@@ -232,7 +242,11 @@ public class AgenteRaton extends Agent {
      */
     private class InformarPartidaSubscribe extends SubscriptionInitiator {
 
-        private AID sender;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private AID sender;
 
         /**
          * Constructoir parametrizado
@@ -325,7 +339,11 @@ public class AgenteRaton extends Agent {
      */
     private class TareaJugarPartida extends ContractNetResponder {
 
-        private ContenedorRaton contenedor;
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private ContenedorRaton contenedor;
 
         /**
          * Constructor parametrizado
@@ -425,6 +443,11 @@ public class AgenteRaton extends Agent {
 
 
         /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		/**
          * Constructor parametrizado
          * @param a Agente padre
          * @param period Periodo de repeticion
@@ -470,7 +493,12 @@ public class AgenteRaton extends Agent {
      */
     public class TareaEnvioConsola extends TickerBehaviour {
 
-        public TareaEnvioConsola(Agent a, long period) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public TareaEnvioConsola(Agent a, long period) {
             super(a, period);
         }
 
